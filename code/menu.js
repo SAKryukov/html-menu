@@ -233,4 +233,14 @@ function menuGenerator (container, options) {
         } //rowCell.header.onpointerdown
     } //loop
 
+    if (row.length > 0) {
+        container.tabIndex = 0;
+        container.onfocus = () => {
+            if (current)
+                select(current, true)
+            else
+                select(row[0].element, true)
+        }; //container.onfocus    
+    }; //if
+
 };

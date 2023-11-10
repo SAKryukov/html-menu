@@ -45,6 +45,14 @@ window.onload = () => {
     menu.add("Option bar", (actionRequest, sample, currentState, action) => { 
         log(action);
     });
+    menu.add("flex.html", (actionRequest, sample, currentState, action)  => { 
+        if (!actionRequest) return;
+        window.open(action, "_blank");
+    });
+    menu.add("styles.html", (actionRequest, sample, currentState, action)  => { 
+        if (!actionRequest) return;
+        window.open(action, "_blank");
+    });
 
     window.onkeyup = event => {
         if (event.key == "Alt") {
