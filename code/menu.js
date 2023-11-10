@@ -117,32 +117,14 @@ function menuGenerator (container, options) {
     }); //container.optionClick
 
     const updateStates = element => {
-        /*
         const elementValue = elementMap.get(element);
-        const menuItems = [];
-        for (let [key, value] of elementMap) {
-            if (key.constructor == HTMLOptionElement) {
-                if (elementValue.xPosition == value.xPosition)
-                    menuItems.push({ menuItem: key, menuItemValue: value });
-            } //if
-        } //loop
-        for (let menuItemData of menuItems) {
-            const action = actionMap.get(menuItemData.menuItem.text);
+        for (let menuItem of elementValue.menuItems) {
+            const action = actionMap.get(menuItem.value);
             if (!action) continue;
-            const result = action(false, menuItemData.menuItemValue.optionValue);
-            if (!result) return;
-            if ((result & menuItemState.disabled) > 0)
-                menuItemData.menuItem.disabled = true;
-            if ((result & 0x0F) == menuItemState.checkBox || menuItemData.menuItem.dataset.checkable)
-                menuItemData.menuItem.textContent = definitionSet.check.checkbox + menuItemData.menuItem.value;
-            if ((result & 0x0F) == menuItemState.checkBoxChecked)
-                menuItemData.menuItem.textContent = definitionSet.check.checkedCheckbox + menuItemData.menuItem.value;
-            if ((result & 0x0F) == menuItemState.radioButton)
-                menuItemData.menuItem.textContent = definitionSet.check.radioButton + menuItemData.menuItem.value;
-            if ((result & 0x0F) == menuItemState.radioButtonChecked)
-                menuItemData.menuItem.textContent = definitionSet.check.checkedRadioButton + menuItemData.menuItem.value;
+            const result = action(false, menuItem.value);
+            if (result == null) continue;
+            menuItem.disabled = !result;
         } //loop
-        */
     }; //updateStates
 
     const select = (element, doSelect) => {
@@ -177,7 +159,9 @@ function menuGenerator (container, options) {
                 xPosition: row.length,
                 element: rowCell.element,
                 header: rowCell.header,
-                select: rowCell.select};
+                select: rowCell.select,
+                menuItems: [],
+            };
             row.push(rowCell);
             rowCell.select.style.position = definitionSet.states.positionAbsolute;
             elementMap.set(rowCell.element, data);
@@ -225,19 +209,8 @@ function menuGenerator (container, options) {
                 });
             }; //optionHandler
             const setupOption = (option, xPosition, yPosition, optionValue) => {
-                /*
-                if (option.dataset.checked)
-                    option.textContent = definitionSet.check.checkedCheckbox + option.textContent;
-                else if (option.dataset.checkable)
-                    option.textContent = definitionSet.check.checkbox + option.textContent;
-                else if (option.dataset.checkPlaceholder)
-                    option.textContent = definitionSet.check.placeholderCheckbox + option.textContent;
-                else if (option.dataset.radio)
-                    option.textContent = definitionSet.check.radioButton + option.textContent;
-                else if (option.dataset.checkedRadio)
-                    option.textContent = definitionSet.check.checkedRadioButton + option.textContent;
-                */
                 elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue });
+                data.menuItems.push(option);
                 option.onpointerdown = optionHandler;
             }; //setupOption           
             for (let option of rowCell.select.children) {

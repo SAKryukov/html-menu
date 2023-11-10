@@ -37,7 +37,7 @@ window.onload = () => {
         log(action);
     });
     menu.subscribe("Save As", (actionRequest, action) => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return false;
         log(action);
     });
     menu.subscribe("Status bar", (actionRequest, action) => { 
@@ -49,11 +49,11 @@ window.onload = () => {
         log(action);
     });
     menu.subscribe("flex.html", (actionRequest, action)  => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return true;
         window.open(action, "_blank");
     });
     menu.subscribe("styles.html", (actionRequest, action)  => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return false;
         window.open(action, "_blank");
     });
 
