@@ -21,36 +21,38 @@ window.onload = () => {
 
     const menu = new menuGenerator(elements.menu, { hide: false, reset: false });
 
-    menu.add("Open", (actionRequest, sample, currentState, action)  => { 
-        if (!actionRequest) return sample.disabled | sample.checkBox;
+    // if (!actionRequest) the added handler should return true (enable), false (disable) or nothing (undefined)
+    // if undefined, menu state is not changed
+    // handler returns menu item handler
+    menu.subscribe("Open", (actionRequest, action)  => { 
+        if (!actionRequest) return;
         log(action);
     });
-    menu.add("1", (actionRequest, sample, currentState, action)  => { 
-        if (!actionRequest) return sample.radioButton;
-        log(action);
-        return sample.disabled | sample.checkBox;
-    });
-    menu.add("Save", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return sample.checkBoxChecked;
+    menu.subscribe("1", (actionRequest, action)  => { 
+        if (!actionRequest) return;
         log(action);
     });
-    menu.add("Save As", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return sample.radioButtonChecked;
+    menu.subscribe("Save", (actionRequest, action) => { 
+        if (!actionRequest) return;
         log(action);
     });
-    menu.add("Status bar", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return 1;
+    menu.subscribe("Save As", (actionRequest, action) => { 
+        if (!actionRequest) return;
         log(action);
     });
-    menu.add("Option bar", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return 1;
+    menu.subscribe("Status bar", (actionRequest, action) => { 
+        if (!actionRequest) return;
         log(action);
     });
-    menu.add("flex.html", (actionRequest, sample, currentState, action)  => { 
-        if (!actionRequest) return sample.none;
+    menu.subscribe("Option bar", (actionRequest, action) => { 
+        if (!actionRequest) return;
+        log(action);
+    });
+    menu.subscribe("flex.html", (actionRequest, action)  => { 
+        if (!actionRequest) return;
         window.open(action, "_blank");
     });
-    menu.add("styles.html", (actionRequest, sample, currentState, action)  => { 
+    menu.subscribe("styles.html", (actionRequest, action)  => { 
         if (!actionRequest) return;
         window.open(action, "_blank");
     });

@@ -25,9 +25,9 @@ function menuGenerator (container, options) {
         disabled: 0xF0,
     };
     Object.freeze(menuItemState);
-    this.add = function(value, action) {
+    this.subscribe = function(value, action) {
         actionMap.set(value, action);
-    } //this.add
+    } //this.subscribe
     this.activate = function() {
         if (row.left < 1) return;``
         if (current)
@@ -84,7 +84,7 @@ function menuGenerator (container, options) {
         if (!event.detail.action) return;
         const action = actionMap.get(event.detail.action);
         if (action)
-            action(true, menuItemState, { boxes: menuItemState.disabled, disabled: true }, event.detail.action);
+            action(true, event.detail.action);
         if (hideAfterAction && current) 
             select(current, false);
         reset();
@@ -117,6 +117,7 @@ function menuGenerator (container, options) {
     }); //container.optionClick
 
     const updateStates = element => {
+        /*
         const elementValue = elementMap.get(element);
         const menuItems = [];
         for (let [key, value] of elementMap) {
@@ -128,11 +129,7 @@ function menuGenerator (container, options) {
         for (let menuItemData of menuItems) {
             const action = actionMap.get(menuItemData.menuItem.text);
             if (!action) continue;
-            const result = action(
-                false,
-                menuItemState,
-                null,
-                menuItemData.menuItemValue.optionValue);
+            const result = action(false, menuItemData.menuItemValue.optionValue);
             if (!result) return;
             if ((result & menuItemState.disabled) > 0)
                 menuItemData.menuItem.disabled = true;
@@ -145,6 +142,7 @@ function menuGenerator (container, options) {
             if ((result & 0x0F) == menuItemState.radioButtonChecked)
                 menuItemData.menuItem.textContent = definitionSet.check.checkedRadioButton + menuItemData.menuItem.value;
         } //loop
+        */
     }; //updateStates
 
     const select = (element, doSelect) => {
@@ -166,102 +164,101 @@ function menuGenerator (container, options) {
         isCurrentVisible = doSelect;
     }; //select
     
-    for (let child of container.children) {
-        const rowCell = {
-            element: child,
-            header: child.querySelector(definitionSet.elements.header),
-            select: child.querySelector(definitionSet.elements.select),
-        };
-        if (rowCell.element == null || rowCell.header == null || rowCell.select == null )
-            continue;
-        const data = {
-            xPosition: row.length,
-            element: rowCell.element,
-            header: rowCell.header,
-            select: rowCell.select};
-        row.push(rowCell);
-        rowCell.select.style.position = definitionSet.states.positionAbsolute;
-        elementMap.set(rowCell.element, data);
-        elementMap.set(rowCell.header, data);
-        elementMap.set(rowCell.select, data);
-        rowCell.select.onkeydown = event => {
-            switch (event.key) {
-                case definitionSet.keyboard.enter:
-                    const clickData = { action: event.target.options[event.target.selectedIndex].value };
+    (() => { //main loop
+        for (let child of container.children) {
+            const rowCell = {
+                element: child,
+                header: child.querySelector(definitionSet.elements.header),
+                select: child.querySelector(definitionSet.elements.select),
+            };
+            if (rowCell.element == null || rowCell.header == null || rowCell.select == null )
+                continue;
+            const data = {
+                xPosition: row.length,
+                element: rowCell.element,
+                header: rowCell.header,
+                select: rowCell.select};
+            row.push(rowCell);
+            rowCell.select.style.position = definitionSet.states.positionAbsolute;
+            elementMap.set(rowCell.element, data);
+            elementMap.set(rowCell.header, data);
+            elementMap.set(rowCell.select, data);
+            rowCell.select.onkeydown = event => {
+                switch (event.key) {
+                    case definitionSet.keyboard.enter:
+                        const clickData = { action: event.target.options[event.target.selectedIndex].value };
+                        container.dispatchEvent(
+                            new CustomEvent(definitionSet.events.optionClick, { detail: clickData }));
+                        break;
+                    case definitionSet.keyboard.up:
+                        if (event.target.selectedIndex < 1) {
+                            event.target.selectedIndex = event.target.options.length - 1;
+                            event.preventDefault();
+                        } //if
+                        break;
+                    case definitionSet.keyboard.down:
+                        if (event.target.selectedIndex >= event.target.options.length - 1) {
+                            event.target.selectedIndex = 0;
+                            event.preventDefault();
+                        } //if
+                        break;
+                    default:
+                        const data = elementMap.get(event.target);
+                        data.target = event.target;
+                        container.dispatchEvent(
+                            new CustomEvent(event.key, { detail: data }));
+                } //switch
+            }; //rowCell.select.onkeydown
+            rowCell.select.onblur = event => {
+                const data = elementMap.get(event.target);
+                select(data.element, false);
+            } //rowCell.select.onblur            
+            let optionIndex = 0, optionSize = 0;    
+            const optionHandler = event => {
+                const data = elementMap.get(event.target);
+                data.action = event.target.value;
+                setTimeout(() => {
                     container.dispatchEvent(
-                        new CustomEvent(definitionSet.events.optionClick, { detail: clickData }));
-                    break;
-                case definitionSet.keyboard.up:
-                    if (event.target.selectedIndex < 1) {
-                        event.target.selectedIndex = event.target.options.length - 1;
-                        event.preventDefault();
-                    } //if
-                    break;
-                case definitionSet.keyboard.down:
-                    if (event.target.selectedIndex >= event.target.options.length - 1) {
-                        event.target.selectedIndex = 0;
-                        event.preventDefault();
-                    } //if
-                    break;
-                default:
-                    const data = elementMap.get(event.target);
-                    data.target = event.target;
-                    container.dispatchEvent(
-                        new CustomEvent(event.key, { detail: data }));
-            } //switch
-        }; //rowCell.select.onkeydown
-        rowCell.select.onblur = event => {
-            const data = elementMap.get(event.target);
-            select(data.element, false);
-        } //rowCell.select.onblur
-        
-        let optionIndex = 0, optionSize = 0, hasChecks = false;
-
-        const optionHandler = event => {
-            const data = elementMap.get(event.target);
-            data.action = event.target.value;
-            setTimeout(() => {
-                container.dispatchEvent(
-                    new CustomEvent(
-                        definitionSet.events.optionClick,
-                        { detail: data }));    
-            });
-        }; //optionHandler
-        const setupOption = (option, xPosition, yPosition, optionValue) => {
-            /*
-            if (option.dataset.checked)
-                option.textContent = definitionSet.check.checkedCheckbox + option.textContent;
-            else if (option.dataset.checkable)
-                option.textContent = definitionSet.check.checkbox + option.textContent;
-            else if (option.dataset.checkPlaceholder)
-                option.textContent = definitionSet.check.placeholderCheckbox + option.textContent;
-            else if (option.dataset.radio)
-                option.textContent = definitionSet.check.radioButton + option.textContent;
-            else if (option.dataset.checkedRadio)
-                option.textContent = definitionSet.check.checkedRadioButton + option.textContent;
-            */
-            elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue });
-            option.onpointerdown = optionHandler;
-        }; //setupOption
-        
-        for (let option of rowCell.select.children) {
-            if (option.constructor == HTMLOptionElement)
-                setupOption(option, row.length - 1, optionIndex++, option.value);
-            else if (option.constructor == HTMLOptGroupElement)
-                for (let subOption of option.children) {
-                    setupOption(subOption, row.length - 1, optionIndex++, subOption.value);
-                    optionSize++;
-                } //loop
-            optionSize++;    
+                        new CustomEvent(
+                            definitionSet.events.optionClick,
+                            { detail: data }));    
+                });
+            }; //optionHandler
+            const setupOption = (option, xPosition, yPosition, optionValue) => {
+                /*
+                if (option.dataset.checked)
+                    option.textContent = definitionSet.check.checkedCheckbox + option.textContent;
+                else if (option.dataset.checkable)
+                    option.textContent = definitionSet.check.checkbox + option.textContent;
+                else if (option.dataset.checkPlaceholder)
+                    option.textContent = definitionSet.check.placeholderCheckbox + option.textContent;
+                else if (option.dataset.radio)
+                    option.textContent = definitionSet.check.radioButton + option.textContent;
+                else if (option.dataset.checkedRadio)
+                    option.textContent = definitionSet.check.checkedRadioButton + option.textContent;
+                */
+                elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue });
+                option.onpointerdown = optionHandler;
+            }; //setupOption           
+            for (let option of rowCell.select.children) {
+                if (option.constructor == HTMLOptionElement)
+                    setupOption(option, row.length - 1, optionIndex++, option.value);
+                else if (option.constructor == HTMLOptGroupElement)
+                    for (let subOption of option.children) {
+                        setupOption(subOption, row.length - 1, optionIndex++, subOption.value);
+                        optionSize++;
+                    } //loop
+                optionSize++;    
+            } //loop
+            data.optionSize = optionSize;
+            rowCell.header.onpointerdown = event => {
+                const element = elementMap.get(event.target).element;
+                if (element == current && !isCurrentVisible) return;
+                select(current, false);
+                select(element, true);
+            } //rowCell.header.onpointerdown
         } //loop
-        data.optionSize = optionSize;
-        rowCell.header.onpointerdown = event => {
-            const element = elementMap.get(event.target).element;
-            if (element == current && !isCurrentVisible) return;
-            select(current, false);
-            select(element, true);
-        } //rowCell.header.onpointerdown
-    } //loop
+    })(); //main loop
 
     if (row.length > 0) {
         container.tabIndex = 0;
