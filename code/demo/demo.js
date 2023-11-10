@@ -22,12 +22,20 @@ window.onload = () => {
     const menu = new menuGenerator(elements.menu, { hide: false, reset: false });
 
     // if (!actionRequest) the added handler should return true (enable), false (disable) or nothing (undefined)
-    // if undefined, menu state is not changed
-    // handler returns menu item handler
-    menu.subscribe("Open", (actionRequest, action)  => { 
-        if (!actionRequest) return;
+    // if undefined, menu state is not changed;
+    // return of true or false overrides menu item handle enable or disable
+    // handler returns menu item handle
+    const menuItemOpen = menu.subscribe("Open", (actionRequest, action)  => { 
+        if (!actionRequest) return true;
         log(action);
     });
+    menuItemOpen.changeText("Open Database");
+    menuItemOpen.setCheckBox();
+    menuItemOpen.setCheckedCheckBox();
+    menuItemOpen.clearBoxesButtons();
+    menuItemOpen.setCheckedRadioButton();
+    menuItemOpen.disable();
+
     menu.subscribe("1", (actionRequest, action)  => { 
         if (!actionRequest) return;
         log(action);
@@ -49,11 +57,11 @@ window.onload = () => {
         log(action);
     });
     menu.subscribe("flex.html", (actionRequest, action)  => { 
-        if (!actionRequest) return true;
+        if (!actionRequest) return;
         window.open(action, "_blank");
     });
     menu.subscribe("styles.html", (actionRequest, action)  => { 
-        if (!actionRequest) return false;
+        if (!actionRequest) return;
         window.open(action, "_blank");
     });
 

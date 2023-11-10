@@ -5,6 +5,10 @@ function menuGenerator (container, options) {
     if (!container) return;
     if (container.constructor != HTMLMenuElement) return;
 
+    class MenuSubscriptionFailure extends Error {
+        constructor(message) { super(message); }
+    } //class MenuSubscriptionFailure
+
     const row = [];
     let isCurrentVisible = false, hideAfterAction = false, resetAfterAction = false, current;
 
@@ -16,20 +20,63 @@ function menuGenerator (container, options) {
     const actionMap = new Map();
     const elementMap = new Map();
 
-    const menuItemState = {
-        none: 1,
-        checkBox: 2,
-        checkBoxChecked: 3,
-        radioButton: 4,
-        radioButtonChecked: 5,
-        disabled: 0xF0,
+    const menuItemButtonState = {
+        none: 0,
+        checkBox: 1,
+        checkBoxChecked: 2,
+        radioButton: 3,
+        radioButtonChecked: 4,
     };
-    Object.freeze(menuItemState);
+    Object.freeze(menuItemButtonState);
+
+    function menuItemProxy(menuItem) {
+        const setBox = (newButton, indicator) => {
+            if (!indicator) indicator = "";
+            const menuItemData = elementMap.get(menuItem);
+            const saveValue = menuItem.value;
+            if (menuItemData.button != menuItemButtonState.none || newButton == menuItemButtonState.none)
+                menuItem.textContent = menuItem.textContent.substring(definitionSet.check.checkbox.length);
+            menuItemData.button = newButton;
+            menuItem.textContent = indicator + menuItem.textContent;
+            menuItem.value = saveValue;
+        }; //setBox
+        this.changeText = text => {
+            const saveValue = menuItem.value;
+            menuItem.textContent = text;
+            menuItem.value = saveValue;
+        }; //this.changeText
+        this.setCheckBox = () => {
+            setBox(menuItemButtonState.checkBox, definitionSet.check.checkbox);
+        }; //this.setCheckBox
+        this.setCheckedCheckBox = () => {
+            setBox(menuItemButtonState.checkBoxChecked, definitionSet.check.checkedCheckbox);
+        }; //this.setCheckedCheckBox
+        this.setRadioButton = () => {
+            setBox(menuItemButtonState.radioButton, definitionSet.check.radioButton);
+        }; //setRadioButton
+        this.setCheckedRadioButton = () => {
+            setBox(menuItemButtonState.radioButtonChecked, definitionSet.check.checkedRadioButton);
+        }; //setCheckedRadioButton
+        this.clearBoxesButtons = () => {
+            setBox(menuItemButtonState.none);
+        }; //this.clearBoxesButtons
+        this.enable = () => {
+            menuItem.disabled = false;
+        }; //enable
+        this.disable = () => {
+            menuItem.disabled = true;
+        }; //disable
+    }; // menuItemProxy
     this.subscribe = function(value, action) {
-        actionMap.set(value, action);
+        const actionMapData = actionMap.get(value);
+        if (!actionMapData)
+            throw new MenuSubscriptionFailure(
+                definitionSet.exceptions.menuItemSubscriptionFailure(value));
+        actionMapData.action = action;
+        return new menuItemProxy(actionMapData.menuItem);
     } //this.subscribe
     this.activate = function() {
-        if (row.left < 1) return;``
+        if (row.left < 1) return;
         if (current)
             select(current, true);
         else
@@ -68,7 +115,13 @@ function menuGenerator (container, options) {
             radioButton: String.fromCodePoint(0x25CE) + " ",
             checkedRadioButton: String.fromCodePoint(0x25C9) + " ",
         },
+        exceptions: {
+            menuItemSubscriptionFailure: value => `
+                Menu item "${value}" subscription failed:
+                menu item (HTML option) with this value does not exist`, //sic!
+        },
     } //const definitionSet
+    Object.freeze(definitionSet);
 
     const reset = () => {
         if (!resetAfterAction) return;
@@ -82,7 +135,7 @@ function menuGenerator (container, options) {
 
     container.addEventListener(definitionSet.events.optionClick, event => {
         if (!event.detail.action) return;
-        const action = actionMap.get(event.detail.action);
+        const action = actionMap.get(event.detail.action).action;
         if (action)
             action(true, event.detail.action);
         if (hideAfterAction && current) 
@@ -119,7 +172,7 @@ function menuGenerator (container, options) {
     const updateStates = element => {
         const elementValue = elementMap.get(element);
         for (let menuItem of elementValue.menuItems) {
-            const action = actionMap.get(menuItem.value);
+            const action = actionMap.get(menuItem.value).action;
             if (!action) continue;
             const result = action(false, menuItem.value);
             if (result == null) continue;
@@ -209,7 +262,8 @@ function menuGenerator (container, options) {
                 });
             }; //optionHandler
             const setupOption = (option, xPosition, yPosition, optionValue) => {
-                elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue });
+                elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue, button: menuItemButtonState.none });
+                actionMap.set(optionValue, { menuItem: option, action: null });
                 data.menuItems.push(option);
                 option.onpointerdown = optionHandler;
             }; //setupOption           
