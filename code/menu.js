@@ -63,8 +63,8 @@ function menuGenerator (container, options) {
             positionAbsolute: "absolute",
         },
         check: {
-            checkbox: String.fromCodePoint(0x2611) + " ",
-            checkedCheckbox: String.fromCodePoint(0x2610) + " ",
+            checkbox: String.fromCodePoint(0x2610) + " ",
+            checkedCheckbox: String.fromCodePoint(0x2611) + " ",
             radioButton: String.fromCodePoint(0x25CE) + " ",
             checkedRadioButton: String.fromCodePoint(0x25C9) + " ",
         },
@@ -116,6 +116,37 @@ function menuGenerator (container, options) {
         leftRightHandler(event, true);
     }); //container.optionClick
 
+    const updateStates = element => {
+        const elementValue = elementMap.get(element);
+        const menuItems = [];
+        for (let [key, value] of elementMap) {
+            if (key.constructor == HTMLOptionElement) {
+                if (elementValue.xPosition == value.xPosition)
+                    menuItems.push({ menuItem: key, menuItemValue: value });
+            } //if
+        } //loop
+        for (let menuItemData of menuItems) {
+            const action = actionMap.get(menuItemData.menuItem.text);
+            if (!action) continue;
+            const result = action(
+                false,
+                menuItemState,
+                null,
+                menuItemData.menuItemValue.optionValue);
+            if (!result) return;
+            if ((result & menuItemState.disabled) > 0)
+                menuItemData.menuItem.disabled = true;
+            if ((result & 0x0F) == menuItemState.checkBox || menuItemData.menuItem.dataset.checkable)
+                menuItemData.menuItem.textContent = definitionSet.check.checkbox + menuItemData.menuItem.value;
+            if ((result & 0x0F) == menuItemState.checkBoxChecked)
+                menuItemData.menuItem.textContent = definitionSet.check.checkedCheckbox + menuItemData.menuItem.value;
+            if ((result & 0x0F) == menuItemState.radioButton)
+                menuItemData.menuItem.textContent = definitionSet.check.radioButton + menuItemData.menuItem.value;
+            if ((result & 0x0F) == menuItemState.radioButtonChecked)
+                menuItemData.menuItem.textContent = definitionSet.check.checkedRadioButton + menuItemData.menuItem.value;
+        } //loop
+    }; //updateStates
+
     const select = (element, doSelect) => {
         if (!element) return;
         const eventData = elementMap.get(element);
@@ -130,6 +161,8 @@ function menuGenerator (container, options) {
         if (doSelect)
             current = element;
         setTimeout(() => eventData.select.focus());
+        if (doSelect)
+            updateStates(element);
         isCurrentVisible = doSelect;
     }; //select
     
@@ -194,7 +227,7 @@ function menuGenerator (container, options) {
                         { detail: data }));    
             });
         }; //optionHandler
-        const setupOption = option => {
+        const setupOption = (option, xPosition, yPosition, optionValue) => {
             /*
             if (option.dataset.checked)
                 option.textContent = definitionSet.check.checkedCheckbox + option.textContent;
@@ -207,21 +240,18 @@ function menuGenerator (container, options) {
             else if (option.dataset.checkedRadio)
                 option.textContent = definitionSet.check.checkedRadioButton + option.textContent;
             */
+            elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue });
             option.onpointerdown = optionHandler;
         }; //setupOption
         
         for (let option of rowCell.select.children) {
-            if (option.constructor == HTMLOptionElement) {
-                elementMap.set(option, { xPosition: row.length, yPosition: optionIndex++ });
-                option.onpointerdown = optionHandler;
-                setupOption(option);
-            } else if (option.constructor == HTMLOptGroupElement) {
+            if (option.constructor == HTMLOptionElement)
+                setupOption(option, row.length - 1, optionIndex++, option.value);
+            else if (option.constructor == HTMLOptGroupElement)
                 for (let subOption of option.children) {
-                    elementMap.set(subOption, { xPosition: row.length, yPosition: optionIndex++ });
-                    setupOption(subOption);
+                    setupOption(subOption, row.length - 1, optionIndex++, subOption.value);
                     optionSize++;
                 } //loop
-            } //if
             optionSize++;    
         } //loop
         data.optionSize = optionSize;

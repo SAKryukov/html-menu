@@ -22,31 +22,32 @@ window.onload = () => {
     const menu = new menuGenerator(elements.menu, { hide: false, reset: false });
 
     menu.add("Open", (actionRequest, sample, currentState, action)  => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return sample.disabled | sample.checkBox;
         log(action);
     });
     menu.add("1", (actionRequest, sample, currentState, action)  => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return sample.radioButton;
         log(action);
         return sample.disabled | sample.checkBox;
     });
     menu.add("Save", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return sample.checkBoxChecked;
         log(action);
     });
     menu.add("Save As", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return sample.radioButtonChecked;
         log(action);
     });
     menu.add("Status bar", (actionRequest, sample, currentState, action) => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return 1;
         log(action);
     });
     menu.add("Option bar", (actionRequest, sample, currentState, action) => { 
+        if (!actionRequest) return 1;
         log(action);
     });
     menu.add("flex.html", (actionRequest, sample, currentState, action)  => { 
-        if (!actionRequest) return;
+        if (!actionRequest) return sample.none;
         window.open(action, "_blank");
     });
     menu.add("styles.html", (actionRequest, sample, currentState, action)  => { 
