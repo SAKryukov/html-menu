@@ -56,11 +56,11 @@ window.onload = () => {
         if (!actionRequest) return;
         log(action);
     });
-    menu.subscribe("flex.html", (actionRequest, action)  => { 
+    menu.subscribe("buttons.html", (actionRequest, action)  => { 
         if (!actionRequest) return;
         window.open(action, "_blank");
     });
-    menu.subscribe("styles.html", (actionRequest, action)  => { 
+    menu.subscribe("flex.html", (actionRequest, action)  => { 
         if (!actionRequest) return;
         window.open(action, "_blank");
     });

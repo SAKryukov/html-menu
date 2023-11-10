@@ -66,6 +66,13 @@ function menuGenerator (container, options) {
         this.disable = () => {
             menuItem.disabled = true;
         }; //disable
+        this.toString = function() {
+            const methodNames = [];
+            for (let index in this)
+                if (this[index].constructor == Function)
+                    methodNames.push(index + definitionSet.check.menuItemProxyBrackets);
+            return definitionSet.check.menuItemProxyHint(methodNames);
+        }; //this.toString
     }; // menuItemProxy
     this.subscribe = function(value, action) {
         const actionMapData = actionMap.get(value);
@@ -110,10 +117,12 @@ function menuGenerator (container, options) {
             positionAbsolute: "absolute",
         },
         check: {
-            checkbox: String.fromCodePoint(0x2610) + " ",
-            checkedCheckbox: String.fromCodePoint(0x2611) + " ",
-            radioButton: String.fromCodePoint(0x25CE) + " ",
-            checkedRadioButton: String.fromCodePoint(0x25C9) + " ",
+            checkbox: String.fromCodePoint(0x2610, 0x2009), //Ballot Box
+            checkedCheckbox: String.fromCodePoint(0x2611, 0x2009), //Ballot Box with Check
+            radioButton: String.fromCodePoint(0x2B58, 0x2009), //Heavy Circle
+            checkedRadioButton: String.fromCodePoint(0x2B57, 0x2009), //Heavy Circle with Circle Inside
+            menuItemProxyHint: hint => `Use: ${hint.join(", ")},`,
+            menuItemProxyBrackets: "()",
         },
         exceptions: {
             menuItemSubscriptionFailure: value => `
