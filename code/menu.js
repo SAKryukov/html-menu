@@ -70,13 +70,10 @@ function menuGenerator (container, options, isContextMenu) {
             menuItem.disabled = true;
         }; //disable
         this.toString = function() {
-            const methodNames = [];
-            for (let index in this)
-                if (this[index].constructor == Function)
-                    methodNames.push(index + definitionSet.check.menuItemProxyBrackets);
-            return definitionSet.check.menuItemProxyHint(methodNames);
+            return createSelfDocumentedList(this);
         }; //this.toString
     }; // menuItemProxy
+    
     this.subscribeCommandSet = function(commandSet) {
         for (const [key, command] of commandSet)
             command.menuItemHandle = this.subscribe(key, command);
@@ -105,7 +102,10 @@ function menuGenerator (container, options, isContextMenu) {
         else
             select(row[0].element, true);
     } //this.activate
-   
+    this.toString = function() {
+        return createSelfDocumentedList(this);
+    }; //this.toString
+ 
     const definitionSet = {
         selectionIndicator: "selected",
         events: {
@@ -161,6 +161,14 @@ function menuGenerator (container, options, isContextMenu) {
     boxMap.set(menuItemButtonState.checkedCheckbox, definitionSet.check.checkedCheckbox);
     boxMap.set(menuItemButtonState.radioButton, definitionSet.check.radioButton);
     boxMap.set(menuItemButtonState.checkedRadioButton, definitionSet.check.checkedRadioButton);
+    
+    const createSelfDocumentedList = self => {
+        const methodNames = [];
+        for (let index in self)
+            if (self[index].constructor == Function)
+                methodNames.push(index + definitionSet.check.menuItemProxyBrackets);
+        return definitionSet.check.menuItemProxyHint(methodNames);
+    }; //createSelfDocumentedList
 
     const reset = () => {
         if (!resetAfterAction) return;
