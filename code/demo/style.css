@@ -29,6 +29,7 @@ header menu li { display: table-cell; }
 header menu header { padding: var(--padding); }
 header menu header.selected { background-color: lightgrey; color: black; border-radius: var(--border-radius-select-header); }
 select { overflow-y: auto; font-size: 100%; display: none; border-radius: var(--border-radius-select); }
+select { display: none; }
 main > select { border-radius: var(--border-radius-context-menu); }
 header menu li:first-of-type select { left: 2px; }
 option, optgroup { padding: var(--padding-option); font-weight: normal; }

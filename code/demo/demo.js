@@ -84,7 +84,6 @@ window.onload = () => {
     })(); //commandSet
 
     (() => { //contextMenu:
-        const pixels = value => `${value}px`;
         const contextMenu = new menuGenerator(elements.contextMenu, { hide: false, reset: false }, true);
         contextMenu.subscribeCommandSet(commandSet);
         let lastPointerX = 0;
@@ -96,9 +95,9 @@ window.onload = () => {
         window.oncontextmenu = event => {
             const isPointer = event.button >= 0;
             if (isPointer)
-                contextMenu.activate(pixels(event.clientX), pixels(event.clientY));
+                contextMenu.activate(event.clientX, event.clientY);
             else
-                contextMenu.activate(pixels(lastPointerX), pixels(lastPointerY));
+                contextMenu.activate(lastPointerX, lastPointerY);
             event.preventDefault();
         }; //this.#table.oncontextmenu
     })(); //contextMenu

@@ -79,12 +79,24 @@ function menuGenerator (container, options, isContextMenu) {
         actionMapData.action = action;
         return new menuItemProxy(actionMapData.menuItem);
     } //this.subscribe
-    this.activate = function(left, top) {
+    this.activate = function(pointerX, pointerY) {
         if (isContextMenu) {
-            container.style.left = left;
-            container.style.top = top;
-            container.style.display = definitionSet.states.show;
-            container.style.position = definitionSet.states.positionAbsolute;
+            container.style.zIndex = Number.MAX_SAFE_INTEGER;
+            updateStates(container);
+            container.style.position = definitionSet.css.positionAbsolute;
+            container.style.display = definitionSet.css.show;
+            const rectangle = container.getBoundingClientRect();
+            if (pointerX != null && pointerY != null) {
+                container.style.left = pointerX + rectangle.width < window.innerWidth
+                    ? definitionSet.css.pixels(pointerX)
+                    : definitionSet.css.pixels(pointerX - rectangle.width);
+                    container.style.top = pointerY + rectangle.height < window.innerHeight
+                    ? definitionSet.css.pixels(pointerY)
+                    : definitionSet.css.pixels(pointerY - rectangle.height);
+            } else {
+                container.style.left = css.pixels.coordinate(window.innerWidth / 2);
+                container.style.top = css.pixels.coordinate(window.innerHeight / 2);
+            } //if
             container.selectedIndex = 0;
             setTimeout(() => container.focus());
             return;
@@ -120,10 +132,11 @@ function menuGenerator (container, options, isContextMenu) {
             header: "header",
             select: "select",
         },
-        states: {
+        css: {
             show: "inline",
             hide: "none",
             positionAbsolute: "absolute",
+            pixels: value => `${value}px`,
         },
         check: {
             checkbox: String.fromCodePoint(0x2610, 0x2009), //Ballot Box
@@ -182,7 +195,7 @@ function menuGenerator (container, options, isContextMenu) {
             action(true, event.detail.action);
             if (isContextMenu) {
                 updateStates(container);
-                container.style.display = definitionSet.states.hide;
+                container.style.display = definitionSet.css.hide;
             } else
                 updateStates(row[menuItemData.xPosition].element);
         } //if
@@ -256,7 +269,7 @@ function menuGenerator (container, options, isContextMenu) {
         else 
             eventData.header.classList.remove(definitionSet.selectionIndicator);
         eventData.select.style.display = doSelect
-            ? definitionSet.states.show : definitionSet.states.hide;
+            ? definitionSet.css.show : definitionSet.css.hide;
         if (!doSelect) return;
         if (eventData.optionSize < 2) ++eventData.optionSize; // SA??? weird bug workaround
         eventData.select.size = eventData.optionSize;
@@ -285,7 +298,7 @@ function menuGenerator (container, options, isContextMenu) {
                 menuItems: [],
             };
             row.push(rowCell);
-            rowCell.select.style.position = definitionSet.states.positionAbsolute;
+            rowCell.select.style.position = definitionSet.css.positionAbsolute;
             elementMap.set(rowCell.element, data);
             elementMap.set(rowCell.header, data);
             elementMap.set(rowCell.select, data);
@@ -304,7 +317,7 @@ function menuGenerator (container, options, isContextMenu) {
             switch (event.key) {
                 case definitionSet.keyboard.escape:
                     if (isContextMenu)
-                        container.style.display = definitionSet.states.hide;
+                        container.style.display = definitionSet.css.hide;
                     else
                         select(current, false);
                     reset();
@@ -344,7 +357,7 @@ function menuGenerator (container, options, isContextMenu) {
                 const data = elementMap.get(event.target);
                 select(data.element, false);    
             }
-                else event.target.style.display = definitionSet.states.hide;
+                else event.target.style.display = definitionSet.css.hide;
         } //selectElement.onblur
     let optionIndex = 0, optionSize = 0;
         const optionHandler = event => {
