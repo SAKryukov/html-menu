@@ -229,7 +229,7 @@ function menuGenerator (container, options, isContextMenu) {
         } //loop
         if (!hasDisabled) return;
         // more complicated: removing selection from the disabled menu item:
-        for (let menuItem of elementValue.menuItems) {
+        for (let menuItem of menuItems) {
             if (!menuItem.disabled) {
                 const verticalMenu = menuItem.parentElement;
                 for (let optionIndex in verticalMenu.options) {
