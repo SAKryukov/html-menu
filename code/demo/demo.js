@@ -13,6 +13,7 @@ window.onload = () => {
     const elements = {
         menu: document.querySelector("header menu"),
         main: document.querySelector("main section"),
+        contextMenu: document.querySelector("main > select"),
         clear: document.querySelector("footer button"),
     }; //elements
 
@@ -80,6 +81,12 @@ window.onload = () => {
         menuItemStatusBar.setCheckBox();
         menuItemOptionBar.setCheckBox();
     })(); //commandSet
+
+    const contextMenu = new menuGenerator(elements.contextMenu, { hide: false, reset: false }, true);
+    window.ondblclick = event => {
+        contextMenu.activate(event.clientX+"px", event.clientY+"px");
+    };
+    contextMenu.subscribeCommandSet(commandSet);
 
     window.onkeyup = event => {
         if (event.key == "Alt") {

@@ -8,10 +8,10 @@ http://www.codeproject.com/Members/SAKryukov
 
 "use strict";
 
-function menuGenerator (container, options) {
+function menuGenerator (container, options, isContextMenu) {
 
     if (!container) return;
-    if (container.constructor != HTMLMenuElement) return;
+    if ((!isContextMenu) && container.constructor != HTMLMenuElement) return;
 
     class MenuSubscriptionFailure extends Error {
         constructor(message) { super(message); }
@@ -89,7 +89,16 @@ function menuGenerator (container, options) {
         actionMapData.action = action;
         return new menuItemProxy(actionMapData.menuItem);
     } //this.subscribe
-    this.activate = function() {
+    this.activate = function(left, top) {
+        if (isContextMenu) {
+            container.style.left = left;
+            container.style.top = top;
+            container.style.display = "block";
+            container.style.position = "absolute";
+            container.selectedIndex = 0;
+            setTimeout(() => container.focus());
+            return;
+        } //if
         if (row.left < 1) return;
         if (current)
             select(current, true);
@@ -251,7 +260,7 @@ function menuGenerator (container, options) {
         isCurrentVisible = doSelect;
     }; //select
     
-    (() => { //main loop
+    const twoLevelMenuPopulate = () => {
         for (let child of container.children) {
             const rowCell = {
                 element: child,
@@ -305,35 +314,8 @@ function menuGenerator (container, options) {
             rowCell.select.onblur = event => {
                 const data = elementMap.get(event.target);
                 select(data.element, false);
-            } //rowCell.select.onblur            
-            let optionIndex = 0, optionSize = 0;    
-            const optionHandler = event => {
-                const data = elementMap.get(event.target);
-                data.action = event.target.value;
-                setTimeout(() => {
-                    container.dispatchEvent(
-                        new CustomEvent(
-                            definitionSet.events.optionClick,
-                            { detail: data }));    
-                });
-            }; //optionHandler
-            const setupOption = (option, xPosition, yPosition, optionValue) => {
-                elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue, button: menuItemButtonState.none });
-                actionMap.set(optionValue, { menuItem: option, xPosition: xPosition, action: null });
-                data.menuItems.push(option);
-                option.onpointerdown = optionHandler;
-            }; //setupOption           
-            for (let option of rowCell.select.children) {
-                if (option.constructor == HTMLOptionElement)
-                    setupOption(option, row.length - 1, optionIndex++, option.value);
-                else if (option.constructor == HTMLOptGroupElement)
-                    for (let subOption of option.children) {
-                        setupOption(subOption, row.length - 1, optionIndex++, subOption.value);
-                        optionSize++;
-                    } //loop
-                optionSize++;    
-            } //loop
-            data.optionSize = optionSize;
+            } //rowCell.select.onblur
+            data.optionSize = contextMenuPopulate(rowCell.select, data);
             rowCell.header.onpointerdown = event => {
                 const element = elementMap.get(event.target).element;
                 if (element == current && !isCurrentVisible) return;
@@ -341,7 +323,48 @@ function menuGenerator (container, options) {
                 select(element, true);
             } //rowCell.header.onpointerdown
         } //loop
-    })(); //main loop
+    }; //twoLevelMenuPopulate
+
+    const contextMenuPopulate = (selectElement, data) => {
+        let optionIndex = 0, optionSize = 0;
+        const optionHandler = event => {
+            const data = elementMap.get(event.target);
+            data.action = event.target.value;
+            setTimeout(() => {
+                container.dispatchEvent(
+                    new CustomEvent(
+                        definitionSet.events.optionClick,
+                        { detail: data }));
+            });
+        }; //optionHandler
+        const setupOption = (option, xPosition, yPosition, optionValue) => {
+            elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue, button: menuItemButtonState.none });
+            actionMap.set(optionValue, { menuItem: option, xPosition: xPosition, action: null });
+            data.menuItems.push(option);
+            option.onpointerdown = optionHandler;
+        }; //setupOption           
+        for (let option of selectElement.children) {
+            if (option.constructor == HTMLOptionElement)
+                setupOption(option, row.length - 1, optionIndex++, option.value);
+            else if (option.constructor == HTMLOptGroupElement)
+                for (let subOption of option.children) {
+                    setupOption(subOption, row.length - 1, optionIndex++, subOption.value);
+                    optionSize++;
+                } //loop
+            optionSize++;
+        } //loop
+        return optionSize;
+    } // contextMenuPopulate
+
+    if (isContextMenu) {
+        const selectElement = container;
+        const data = { menuItems: [] };
+        const size = contextMenuPopulate(selectElement, data);
+        selectElement.size = size;
+        selectElement.onblur = event =>
+            event.target.style.display = definitionSet.states.hide;
+    } else
+        twoLevelMenuPopulate();
 
     if (row.length > 0) {
         container.tabIndex = 0;

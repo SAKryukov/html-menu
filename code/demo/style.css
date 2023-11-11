@@ -16,6 +16,7 @@ http://www.codeproject.com/Members/SAKryukov
     --margin-X-small: 0.3em;
     --border-radius-select-header: 6px 6px 0 0;
     --border-radius-select: 0 9px 9px 9px;
+    --border-radius-context-menu: 9px 9px 9px 9px;
 }
 * { padding: 0; margin: 0; box-sizing: border-box; font-family: sans-serif; user-select: none; }
 html, body { height: 100%; }        
@@ -27,7 +28,8 @@ header menu { display:  table-row; border: none; outline: none; }
 header menu li { display: table-cell; }
 header menu header { padding: var(--padding); }
 header menu header.selected { background-color: lightgrey; color: black; border-radius: var(--border-radius-select-header); }
-select { overflow-y: auto; font-size: 100%; display: none; border-radius:  var(--border-radius-select); }
+select { overflow-y: auto; font-size: 100%; display: none; border-radius: var(--border-radius-select); }
+main > select { border-radius: var(--border-radius-context-menu); }
 header menu li:first-of-type select { left: 2px; }
 option, optgroup { padding: var(--padding-option); font-weight: normal; }
 optgroup { margin-left: 1em; }
