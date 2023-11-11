@@ -19,7 +19,7 @@ header menu { display:  table-row; border: none; outline: none; }
 header menu li { display: table-cell; }
 header menu header { padding: var(--padding); }
 header menu header.selected { background-color: lightgrey; color: black; border-radius: var(--border-radius-select-header); }
-select { padding: 3em; overflow-y: auto; font-size: 100%; display: none; border-radius:  var(--border-radius-select); }
+select { padding: var(--padding-select); overflow-y: auto; font-size: 100%; display: none; border-radius:  var(--border-radius-select); }
 option, optgroup { font-weight: normal; }
 optgroup { margin-left: 1em; }
 optgroup option { padding-left: 2em; }
