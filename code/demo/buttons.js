@@ -30,12 +30,18 @@ window.onload = () => {
 
     const menu = new menuGenerator(elements.menu, { hide: false, reset: false });
 
-    const menuItemClear = menu.subscribe("Clear", (actionRequest) => {
-        if (!actionRequest) return elements.console.firstChild != null;
-        while (elements.console.firstChild)
-            elements.console.removeChild(elements.console.firstChild);
-    });
-    menuItemClear.disable();
+    (() => { //clear:
+        // commandSet and menu.subscribeCommandSet is an alternative way of subscribing
+        // it is a convenient way to subscribe to more then one menu, for example,
+        // main menu + context menu
+        const commandSet = new Map();
+        commandSet.set("Clear", (actionRequest) => {
+            if (!actionRequest) return elements.console.firstChild != null;
+            while (elements.console.firstChild)
+                elements.console.removeChild(elements.console.firstChild);
+        });
+        menu.subscribeCommandSet(commandSet);
+    })(); //clear
 
     (() => { //themes:
         const setTheme = menuItemHandle => {

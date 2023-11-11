@@ -77,6 +77,10 @@ function menuGenerator (container, options) {
             return definitionSet.check.menuItemProxyHint(methodNames);
         }; //this.toString
     }; // menuItemProxy
+    this.subscribeCommandSet = function(commandSet) {
+        for (const [key, command] of commandSet)
+            command.menuItemHandle = this.subscribe(key, command);
+    }; //subscribeCommandSet
     this.subscribe = function(value, action) {
         const actionMapData = actionMap.get(value);
         if (!actionMapData)

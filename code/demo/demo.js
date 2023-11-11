@@ -33,16 +33,10 @@ window.onload = () => {
     // if undefined, menu state is not changed;
     // return of true or false overrides menu item handle enable or disable
     // handler returns menu item handle
-    const menuItemOpen = menu.subscribe("Open", (actionRequest, action)  => { 
+    menu.subscribe("Open", (actionRequest, action)  => { 
         if (!actionRequest) return true;
         log(action);
     });
-    menuItemOpen.changeText("Open Database");
-    menuItemOpen.setCheckBox();
-    menuItemOpen.setCheckedCheckBox();
-    menuItemOpen.clearBoxesButtons();
-    menuItemOpen.setCheckedRadioButton();
-    menuItemOpen.disable();
 
     menu.subscribe("1", (actionRequest, action)  => { 
         if (!actionRequest) return;
@@ -56,22 +50,36 @@ window.onload = () => {
         if (!actionRequest) return false;
         log(action);
     });
-    menu.subscribe("Status bar", (actionRequest, action) => { 
-        if (!actionRequest) return;
-        log(action);
-    });
-    menu.subscribe("Option bar", (actionRequest, action) => { 
-        if (!actionRequest) return;
-        log(action);
-    });
-    menu.subscribe("buttons.html", (actionRequest, action)  => { 
-        if (!actionRequest) return;
-        window.open(action, "_blank");
-    });
-    menu.subscribe("flex.html", (actionRequest, action)  => { 
-        if (!actionRequest) return;
-        window.open(action, "_blank");
-    });
+
+    (() => { //commandSet:
+        // commandSet and menu.subscribeCommandSet is an alternative way of subscribing
+        // it is a convenient way to subscribe to more then one menu, for example,
+        // main menu + context menu
+        const commandSet = new Map();
+        const statusBarName = "Status Bar";
+        const toolboxName = "Toolbox";
+        commandSet.set(statusBarName, (actionRequest, action) => {
+            if (!actionRequest) return;
+            log(action);
+        });
+        commandSet.set(toolboxName, (actionRequest, action) => {
+            if (!actionRequest) return;
+            log(action);
+        });
+        commandSet.set("buttons.html", (actionRequest, action) => {
+            if (!actionRequest) return;
+            window.open(action, "_blank");
+        });
+        commandSet.set("flex.html", (actionRequest, action) => {
+            if (!actionRequest) return;
+            window.open(action, "_blank");
+        });
+        menu.subscribeCommandSet(commandSet);
+        const menuItemStatusBar = commandSet.get(statusBarName).menuItemHandle;
+        const menuItemOptionBar = commandSet.get(toolboxName).menuItemHandle;
+        menuItemStatusBar.setCheckBox();
+        menuItemOptionBar.setCheckBox();
+    })(); //commandSet
 
     window.onkeyup = event => {
         if (event.key == "Alt") {
