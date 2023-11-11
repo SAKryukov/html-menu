@@ -62,7 +62,7 @@ function menuGenerator (container, options, isContextMenu) {
         this.disable = () => {
             menuItem.disabled = true;
         }; //disable
-        this.toString = function() {
+        this.toString = () => {
             return createSelfDocumentedList(this);
         }; //this.toString
         Object.freeze(this);
@@ -72,7 +72,7 @@ function menuGenerator (container, options, isContextMenu) {
         for (const [key, command] of commandSet)
             command.menuItemHandle = this.subscribe(key, command);
     }; //subscribeCommandSet
-    this.subscribe = function(value, action) {
+    this.subscribe = (value, action) => {
         const actionMapData = actionMap.get(value);
         if (!actionMapData)
             throw new MenuSubscriptionFailure(
@@ -80,7 +80,7 @@ function menuGenerator (container, options, isContextMenu) {
         actionMapData.action = action;
         return new menuItemProxy(actionMapData.menuItem);
     } //this.subscribe
-    this.activate = function(pointerX, pointerY) {
+    this.activate = (pointerX, pointerY) => {
         if (isContextMenu) {
             container.style.zIndex = Number.MAX_SAFE_INTEGER;
             updateStates(container);
@@ -108,15 +108,13 @@ function menuGenerator (container, options, isContextMenu) {
         else
             select(row[0].element, true);
     } //this.activate
-    this.toString = function() {
+    this.toString = () => {
         return createSelfDocumentedList(this);
     }; //this.toString
  
     const definitionSet = {
         selectionIndicator: "selected",
-        events: {
-            optionClick: "optionClick",
-        },
+        events: { optionClick: "optionClick" },
         keyboard: {
             left: "ArrowLeft",
             right: "ArrowRight",
@@ -172,7 +170,7 @@ function menuGenerator (container, options, isContextMenu) {
     
     const createSelfDocumentedList = self => {
         const methodNames = [];
-        for (let index in self)
+        for (const index in self)
             if (self[index].constructor == Function)
                 methodNames.push(index + definitionSet.check.menuItemProxyBrackets);
         return definitionSet.check.menuItemProxyHint(methodNames);
@@ -181,7 +179,7 @@ function menuGenerator (container, options, isContextMenu) {
     const reset = () => {
         if (!resetAfterAction) return;
         if (row.length < 1) return;
-        for (let element of row) {
+        for (const element of row) {
             if (element.select)
                 element.select.selectedIndex = 0;
         } //loop
@@ -235,7 +233,7 @@ function menuGenerator (container, options, isContextMenu) {
             menuItems = elementValue.menuItems;
         } else
             menuItems = element.options;
-        for (let menuItem of menuItems) {
+        for (const menuItem of menuItems) {
             const menuItemData = elementMap.get(menuItem);
             const value = menuItemData.shadowValue;
             const action = actionMap.get(value).action;
@@ -247,10 +245,10 @@ function menuGenerator (container, options, isContextMenu) {
         } //loop
         if (!hasDisabled) return;
         // more complicated: removing selection from the disabled menu item:
-        for (let menuItem of menuItems) {
+        for (const menuItem of menuItems) {
             if (!menuItem.disabled) {
                 const verticalMenu = menuItem.parentElement;
-                for (let optionIndex in verticalMenu.options) {
+                for (const optionIndex in verticalMenu.options) {
                     if (verticalMenu.options[optionIndex] == menuItem) {
                         verticalMenu.selectedIndex = optionIndex;
                         return;
@@ -283,7 +281,7 @@ function menuGenerator (container, options, isContextMenu) {
     }; //select
     
     const twoLevelMenuPopulate = () => {
-        for (let child of container.children) {
+        for (const child of container.children) {
             const rowCell = {
                 element: child,
                 header: child.querySelector(definitionSet.elements.header),
@@ -379,11 +377,11 @@ function menuGenerator (container, options, isContextMenu) {
             data.menuItems.push(option);
             option.onpointerdown = optionHandler;
         }; //setupOption           
-        for (let option of selectElement.children) {
+        for (const option of selectElement.children) {
             if (option.constructor == HTMLOptionElement)
                 setupOption(option, row.length - 1, optionIndex++, option.value);
             else if (option.constructor == HTMLOptGroupElement)
-                for (let subOption of option.children) {
+                for (const subOption of option.children) {
                     setupOption(subOption, row.length - 1, optionIndex++, subOption.value);
                     optionSize++;
                 } //loop
