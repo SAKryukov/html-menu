@@ -30,23 +30,16 @@ function menuGenerator (container, options, isContextMenu) {
 
     function menuItemProxy(menuItem) {
         const setBox = newButton => {
-            const prefix = boxMap.get(newButton);
             const menuItemData = elementMap.get(menuItem);
-            const saveValue = menuItem.value;
-            if (prefix == null) {
-                const existingPrefix = boxMap.get(menuItemData.button);
-                if (existingPrefix)
-                    menuItem.textContent = menuItem.textContent.substring(existingPrefix.length);
-            } //if
             menuItemData.button = newButton;
-            if (prefix)
-                menuItem.textContent = prefix + menuItem.value;
-            menuItem.value = saveValue;
+            menuItemData.shadowButtonText =
+                definitionSet.toString(boxMap.get(newButton));
+            menuItem.textContent = menuItemData.shadowButtonText + menuItemData.shadowText;
         }; //setBox
         this.changeText = text => {
-            const saveValue = menuItem.value;
-            menuItem.textContent = text;
-            menuItem.value = saveValue;
+            const menuItemData = elementMap.get(menuItem);
+            menuItemData.shadowText = definitionSet.toString(text);
+            menuItem.textContent = menuItemData.shadowButtonText + menuItemData.shadowText;
         }; //this.changeText
         this.setCheckBox = () => {
             setBox(menuItemButtonState.checkBox);
@@ -145,6 +138,7 @@ function menuGenerator (container, options, isContextMenu) {
                 Menu item "${value}" subscription failed:
                 menu item (HTML option) with this value does not exist`, //sic!
         },
+        toString: text => `${text == null ? "" : text}`,
     } //const definitionSet
     Object.freeze(definitionSet);
     const menuItemButtonState = {
@@ -228,9 +222,11 @@ function menuGenerator (container, options, isContextMenu) {
         } else
             menuItems = element.options;
         for (let menuItem of menuItems) {
-            const action = actionMap.get(menuItem.value).action;
+            const menuItemData = elementMap.get(menuItem);
+            const value = menuItemData.shadowValue;
+            const action = actionMap.get(value).action;
             if (!action) continue;
-            const result = action(false, menuItem.value);
+            const result = action(false, value);
             if (result == null) continue;
             menuItem.disabled = !result;
             hasDisabled ||= menuItem.disabled;
@@ -314,7 +310,8 @@ function menuGenerator (container, options, isContextMenu) {
                     reset();
                     break;
                 case definitionSet.keyboard.enter:
-                    const clickData = { action: event.target.options[event.target.selectedIndex].value };
+                    const optionData = elementMap.get(event.target.options[event.target.selectedIndex]);
+                    const clickData = { action: optionData.shadowValue };
                     container.dispatchEvent(
                         new CustomEvent(definitionSet.events.optionClick, { detail: clickData }));
                     break;
@@ -352,7 +349,8 @@ function menuGenerator (container, options, isContextMenu) {
     let optionIndex = 0, optionSize = 0;
         const optionHandler = event => {
             const data = elementMap.get(event.target);
-            data.action = event.target.value;
+            const menuItemData = elementMap.get(event.target);
+            data.action = menuItemData.shadowValue;
             setTimeout(() => {
                 container.dispatchEvent(
                     new CustomEvent(
@@ -361,7 +359,8 @@ function menuGenerator (container, options, isContextMenu) {
             });
         }; //optionHandler
         const setupOption = (option, xPosition, yPosition, optionValue) => {
-            elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue, button: menuItemButtonState.none });
+            elementMap.set(option, { xPosition: xPosition, yPosition: yPosition,
+                shadowValue: optionValue, shadowText: optionValue, shadowButtonText: null, button: menuItemButtonState.none });
             actionMap.set(optionValue, { menuItem: option, xPosition: xPosition, action: null });
             data.menuItems.push(option);
             option.onpointerdown = optionHandler;
@@ -381,7 +380,7 @@ function menuGenerator (container, options, isContextMenu) {
 
     if (isContextMenu) {
         const selectElement = container;
-        const data = { menuItems: [] };
+        const data = { menuItems: [], };
         const size = contextMenuPopulate(selectElement, data);
         selectElement.size = size;
     } else
