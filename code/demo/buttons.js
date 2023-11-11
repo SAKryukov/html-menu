@@ -1,3 +1,11 @@
+/*
+HTML Menu
+
+Copyright (c) 2023 by Sergey A Kryukov
+http://www.SAKryukov.org
+http://www.codeproject.com/Members/SAKryukov
+*/
+
 "use strict";
 
 window.onload = () => {
