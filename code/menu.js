@@ -248,13 +248,17 @@ function menuGenerator (container, options) {
                         break;
                     case definitionSet.keyboard.up:
                         if (event.target.selectedIndex < 1) {
-                            event.target.selectedIndex = event.target.options.length - 1;
+                            const newIndex = event.target.options.length - 1;
+                            if (!event.target.options[newIndex].disabled)
+                                event.target.selectedIndex = newIndex;
                             event.preventDefault();
                         } //if
                         break;
                     case definitionSet.keyboard.down:
                         if (event.target.selectedIndex >= event.target.options.length - 1) {
-                            event.target.selectedIndex = 0;
+                            const newIndex = 0;
+                            if (!event.target.options[newIndex].disabled)
+                                event.target.selectedIndex = newIndex;
                             event.preventDefault();
                         } //if
                         break;
