@@ -153,9 +153,13 @@ function menuGenerator (container, options) {
 
     container.addEventListener(definitionSet.events.optionClick, event => {
         if (!event.detail.action) return;
-        const action = actionMap.get(event.detail.action).action;
-        if (action)
+        const menuItemData = actionMap.get(event.detail.action);
+        const action = menuItemData.action;
+        if (action) {
             action(true, event.detail.action);
+            const element = row[menuItemData.xPosition].element;
+            updateStates(element);
+        } //if
         if (hideAfterAction && current) 
             select(current, false);
         reset();
@@ -189,13 +193,30 @@ function menuGenerator (container, options) {
 
     const updateStates = element => {
         const elementValue = elementMap.get(element);
+        let hasDisabled = false;
         for (let menuItem of elementValue.menuItems) {
             const action = actionMap.get(menuItem.value).action;
             if (!action) continue;
             const result = action(false, menuItem.value);
             if (result == null) continue;
             menuItem.disabled = !result;
+            hasDisabled ||= menuItem.disabled;
         } //loop
+        if (!hasDisabled) return;
+        // more complicated: removing selection from the disabled menu item:
+        for (let menuItem of elementValue.menuItems) {
+            if (!menuItem.disabled) {
+                const verticalMenu = menuItem.parentElement;
+                for (let optionIndex in verticalMenu.options) {
+                    if (verticalMenu.options[optionIndex] == menuItem) {
+                        verticalMenu.selectedIndex = optionIndex;
+                        return;
+                    } //if
+                } //loop
+            } //if
+        } //loop
+        if (current)
+            select(current, false);
     }; //updateStates
 
     const select = (element, doSelect) => {
@@ -286,7 +307,7 @@ function menuGenerator (container, options) {
             }; //optionHandler
             const setupOption = (option, xPosition, yPosition, optionValue) => {
                 elementMap.set(option, { xPosition: xPosition, yPosition: yPosition, optionValue: optionValue, button: menuItemButtonState.none });
-                actionMap.set(optionValue, { menuItem: option, action: null });
+                actionMap.set(optionValue, { menuItem: option, xPosition: xPosition, action: null });
                 data.menuItems.push(option);
                 option.onpointerdown = optionHandler;
             }; //setupOption           
