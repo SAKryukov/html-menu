@@ -93,8 +93,8 @@ function menuGenerator (container, options, isContextMenu) {
         if (isContextMenu) {
             container.style.left = left;
             container.style.top = top;
-            container.style.display = "block";
-            container.style.position = "absolute";
+            container.style.display = definitionSet.states.show;
+            container.style.position = definitionSet.states.positionAbsolute;
             container.selectedIndex = 0;
             setTimeout(() => container.focus());
             return;
@@ -178,17 +178,16 @@ function menuGenerator (container, options, isContextMenu) {
         const action = menuItemData.action;
         if (action) {
             action(true, event.detail.action);
-            const element = row[menuItemData.xPosition].element;
-            updateStates(element);
+            if (isContextMenu) {
+                updateStates(container);
+                container.style.display = definitionSet.states.hide;
+            } else
+                updateStates(row[menuItemData.xPosition].element);
         } //if
         if (hideAfterAction && current) 
             select(current, false);
         reset();
     }); //container.optionClick
-    container.addEventListener(definitionSet.keyboard.escape, () => {
-        select(current, false);
-        reset();
-    }); //container.escape
     const leftRightHandler = (event, right) => {
         let xPosition = event.detail.xPosition;
         if (right) {
@@ -213,9 +212,14 @@ function menuGenerator (container, options, isContextMenu) {
     }); //container.optionClick
 
     const updateStates = element => {
-        const elementValue = elementMap.get(element);
-        let hasDisabled = false;
-        for (let menuItem of elementValue.menuItems) {
+        let hasDisabled = false;    
+        let menuItems;
+        if (!isContextMenu) {
+            const elementValue = elementMap.get(element);
+            menuItems = elementValue.menuItems;
+        } else
+            menuItems = element.options;
+        for (let menuItem of menuItems) {
             const action = actionMap.get(menuItem.value).action;
             if (!action) continue;
             const result = action(false, menuItem.value);
@@ -281,40 +285,6 @@ function menuGenerator (container, options, isContextMenu) {
             elementMap.set(rowCell.element, data);
             elementMap.set(rowCell.header, data);
             elementMap.set(rowCell.select, data);
-            rowCell.select.onkeydown = event => {
-                switch (event.key) {
-                    case definitionSet.keyboard.enter:
-                        const clickData = { action: event.target.options[event.target.selectedIndex].value };
-                        container.dispatchEvent(
-                            new CustomEvent(definitionSet.events.optionClick, { detail: clickData }));
-                        break;
-                    case definitionSet.keyboard.up:
-                        if (event.target.selectedIndex < 1) {
-                            const newIndex = event.target.options.length - 1;
-                            if (!event.target.options[newIndex].disabled)
-                                event.target.selectedIndex = newIndex;
-                            event.preventDefault();
-                        } //if
-                        break;
-                    case definitionSet.keyboard.down:
-                        if (event.target.selectedIndex >= event.target.options.length - 1) {
-                            const newIndex = 0;
-                            if (!event.target.options[newIndex].disabled)
-                                event.target.selectedIndex = newIndex;
-                            event.preventDefault();
-                        } //if
-                        break;
-                    default:
-                        const data = elementMap.get(event.target);
-                        data.target = event.target;
-                        container.dispatchEvent(
-                            new CustomEvent(event.key, { detail: data }));
-                } //switch
-            }; //rowCell.select.onkeydown
-            rowCell.select.onblur = event => {
-                const data = elementMap.get(event.target);
-                select(data.element, false);
-            } //rowCell.select.onblur
             data.optionSize = contextMenuPopulate(rowCell.select, data);
             rowCell.header.onpointerdown = event => {
                 const element = elementMap.get(event.target).element;
@@ -326,7 +296,52 @@ function menuGenerator (container, options, isContextMenu) {
     }; //twoLevelMenuPopulate
 
     const contextMenuPopulate = (selectElement, data) => {
-        let optionIndex = 0, optionSize = 0;
+        selectElement.onkeydown = event => {
+            switch (event.key) {
+                case definitionSet.keyboard.escape:
+                    if (isContextMenu)
+                        container.style.display = definitionSet.states.hide;
+                    else
+                        select(current, false);
+                    reset();
+                    break;
+                case definitionSet.keyboard.enter:
+                    const clickData = { action: event.target.options[event.target.selectedIndex].value };
+                    container.dispatchEvent(
+                        new CustomEvent(definitionSet.events.optionClick, { detail: clickData }));
+                    break;
+                case definitionSet.keyboard.up:
+                    if (event.target.selectedIndex < 1) {
+                        const newIndex = event.target.options.length - 1;
+                        if (!event.target.options[newIndex].disabled)
+                            event.target.selectedIndex = newIndex;
+                        event.preventDefault();
+                    } //if
+                    break;
+                case definitionSet.keyboard.down:
+                    if (event.target.selectedIndex >= event.target.options.length - 1) {
+                        const newIndex = 0;
+                        if (!event.target.options[newIndex].disabled)
+                            event.target.selectedIndex = newIndex;
+                        event.preventDefault();
+                    } //if
+                    break;
+                default:
+                    if (isContextMenu) break;
+                    const data = elementMap.get(event.target);
+                    data.target = event.target;
+                    container.dispatchEvent(
+                        new CustomEvent(event.key, { detail: data }));
+            } //switch
+        }; //selectElement.onkeydown
+        selectElement.onblur = event => {
+            if (!isContextMenu) {
+                const data = elementMap.get(event.target);
+                select(data.element, false);    
+            }
+                else event.target.style.display = definitionSet.states.hide;
+        } //selectElement.onblur
+    let optionIndex = 0, optionSize = 0;
         const optionHandler = event => {
             const data = elementMap.get(event.target);
             data.action = event.target.value;
@@ -361,8 +376,6 @@ function menuGenerator (container, options, isContextMenu) {
         const data = { menuItems: [] };
         const size = contextMenuPopulate(selectElement, data);
         selectElement.size = size;
-        selectElement.onblur = event =>
-            event.target.style.display = definitionSet.states.hide;
     } else
         twoLevelMenuPopulate();
 

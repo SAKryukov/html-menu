@@ -52,7 +52,7 @@ window.onload = () => {
         log(action);
     });
 
-    (() => { //commandSet:
+    const commandSet = (() => { //commandSet:
         // commandSet and menu.subscribeCommandSet is an alternative way of subscribing
         // it is a convenient way to subscribe to more then one menu, for example,
         // main menu + context menu
@@ -80,13 +80,28 @@ window.onload = () => {
         const menuItemOptionBar = commandSet.get(toolboxName).menuItemHandle;
         menuItemStatusBar.setCheckBox();
         menuItemOptionBar.setCheckBox();
+        return commandSet;
     })(); //commandSet
 
-    const contextMenu = new menuGenerator(elements.contextMenu, { hide: false, reset: false }, true);
-    window.ondblclick = event => {
-        contextMenu.activate(event.clientX+"px", event.clientY+"px");
-    };
-    contextMenu.subscribeCommandSet(commandSet);
+    (() => { //contextMenu:
+        const pixels = value => `${value}px`;
+        const contextMenu = new menuGenerator(elements.contextMenu, { hide: false, reset: false }, true);
+        contextMenu.subscribeCommandSet(commandSet);
+        let lastPointerX = 0;
+        let lastPointerY = 0;
+        window.onpointermove = event => {
+            lastPointerX = event.clientX;
+            lastPointerY = event.clientY;
+        }; 
+        window.oncontextmenu = event => {
+            const isPointer = event.button >= 0;
+            if (isPointer)
+                contextMenu.activate(pixels(event.clientX), pixels(event.clientY));
+            else
+                contextMenu.activate(pixels(lastPointerX), pixels(lastPointerY));
+            event.preventDefault();
+        }; //this.#table.oncontextmenu
+    })(); //contextMenu
 
     window.onkeyup = event => {
         if (event.key == "Alt") {
