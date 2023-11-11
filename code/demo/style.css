@@ -2,7 +2,7 @@
     --deltaX: 2em;
     --margin-Y: 0.3em;
     --padding: 0.3em 1em 0.3em 1em;
-    --padding-select: 0.2em 0.4em 0.4em 1em;
+    --padding-option: 0.12em 1.4em 0.12em 1.4em;
     --padding-button: 1px 1.4em 1px 1.4em;
     --padding-horizontal: 0.2em 1em 0.2em 1em;
     --margin-X-small: 0.3em;
@@ -19,8 +19,8 @@ header menu { display:  table-row; border: none; outline: none; }
 header menu li { display: table-cell; }
 header menu header { padding: var(--padding); }
 header menu header.selected { background-color: lightgrey; color: black; border-radius: var(--border-radius-select-header); }
-select { padding: var(--padding-select); overflow-y: auto; font-size: 100%; display: none; border-radius:  var(--border-radius-select); }
-option, optgroup { font-weight: normal; }
+select { overflow-y: auto; font-size: 100%; display: none; border-radius:  var(--border-radius-select); }
+option, optgroup { padding: var(--padding-option); font-weight: normal; }
 optgroup { margin-left: 1em; }
 optgroup option { padding-left: 2em; }
 option:disabled { color: black; opacity: 0.3; }

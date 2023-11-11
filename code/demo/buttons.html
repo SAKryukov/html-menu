@@ -6,39 +6,12 @@
         <script src="../menu.js"></script>
         <script src="buttons.js"></script>
         <style>
-            :root {
-                --deltaX: 2em;
-                --margin-Y: 0.3em;
-                --padding: 0.3em 1em 0.3em 1em;
-                --padding-select: 0 1em 0 1em;
-                --padding-button: 1px 1.4em 1px 1.4em;
-                --padding-horizontal: 0.2em 1em 0.2em 1em;
-                --margin-X-small: 0.3em;
-                --border-radius-select-header: 6px 6px 0 0;
-                --border-radius-select: 0 9px 9px 9px;;
-            }
-            * { padding: 0; margin: 0; box-sizing: border-box; font-family: sans-serif; user-select: none; }
-            html, body { height: 100%; }        
-            body { display: flex; flex-flow: column; }
-            main { flex: auto; overflow: auto; }
-            main { background-color: aliceblue; border-top: solid thin gray; border-bottom: solid thin gray; }
-            footer { background-color: lightgreen; padding: var(--padding-horizontal); }
-            header menu { display:  table-row; border: none; outline: none; }
-            header menu li { display: table-cell; }
-            header menu header { padding: var(--padding); }
-            header menu header.selected { background-color: lightgrey; color: black; border-radius: var(--border-radius-select-header); }
-            select { overflow-y: auto; font-size: 100%; display: none; border-radius:  var(--border-radius-select); }
-            option, optgroup { padding: var(--padding-select); font-weight: normal; }
-            optgroup { margin-left: 1em; }
-            optgroup option { padding-left: 2em; }
-            option.separator {
-                border-bottom: solid 1px black; 
-            }
-            main { padding-left: 20em; }
-            button { padding: var(--padding); background-color: beige; border: none; border-radius: 4em;
-                outline: solid 0.4px; }
-            button { outline-color: saddlebrown; }
-            button:focus { outline-color: purple; outline-width: 3px; outline-offset: -1px; }            
+            @import url(style.css);
+            /*
+            main { display: flex; flex-direction: row; }
+            main { padding-left: 1em; }
+            textarea { width: 100; }            
+            */
         </style>
     </head>
     <body>
@@ -69,7 +42,8 @@
                 </li>    
             </menu>
         </header>
-        <main>  
+        <main> 
+            <aside><textarea></textarea></aside>
             <section></section>
         </main>
         <footer>
