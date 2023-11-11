@@ -65,6 +65,7 @@ function menuGenerator (container, options, isContextMenu) {
         this.toString = function() {
             return createSelfDocumentedList(this);
         }; //this.toString
+        Object.freeze(this);
     }; // menuItemProxy
     
     this.subscribeCommandSet = function(commandSet) {
@@ -408,5 +409,7 @@ function menuGenerator (container, options, isContextMenu) {
                 select(row[0].element, true)
         }; //container.onfocus    
     }; //if
+
+    Object.freeze(this);
 
 };
