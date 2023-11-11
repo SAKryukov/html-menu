@@ -20,24 +20,19 @@ function menuGenerator (container, options) {
     const actionMap = new Map();
     const elementMap = new Map();
 
-    const menuItemButtonState = {
-        none: 0,
-        checkBox: 1,
-        checkBoxChecked: 2,
-        radioButton: 3,
-        radioButtonChecked: 4,
-    };
-    Object.freeze(menuItemButtonState);
-
     function menuItemProxy(menuItem) {
-        const setBox = (newButton, indicator) => {
-            if (!indicator) indicator = "";
+        const setBox = newButton => {
+            const prefix = boxMap.get(newButton);
             const menuItemData = elementMap.get(menuItem);
             const saveValue = menuItem.value;
-            if (menuItemData.button != menuItemButtonState.none || newButton == menuItemButtonState.none)
-                menuItem.textContent = menuItem.textContent.substring(definitionSet.check.checkbox.length);
+            if (prefix == null) {
+                const existingPrefix = boxMap.get(menuItemData.button);
+                if (existingPrefix)
+                    menuItem.textContent = menuItem.textContent.substring(existingPrefix.length);
+            } //if
             menuItemData.button = newButton;
-            menuItem.textContent = indicator + menuItem.textContent;
+            if (prefix)
+                menuItem.textContent = prefix + menuItem.value;
             menuItem.value = saveValue;
         }; //setBox
         this.changeText = text => {
@@ -46,16 +41,16 @@ function menuGenerator (container, options) {
             menuItem.value = saveValue;
         }; //this.changeText
         this.setCheckBox = () => {
-            setBox(menuItemButtonState.checkBox, definitionSet.check.checkbox);
+            setBox(menuItemButtonState.checkBox);
         }; //this.setCheckBox
         this.setCheckedCheckBox = () => {
-            setBox(menuItemButtonState.checkBoxChecked, definitionSet.check.checkedCheckbox);
+            setBox(menuItemButtonState.checkedCheckbox);
         }; //this.setCheckedCheckBox
         this.setRadioButton = () => {
-            setBox(menuItemButtonState.radioButton, definitionSet.check.radioButton);
+            setBox(menuItemButtonState.radioButton);
         }; //setRadioButton
         this.setCheckedRadioButton = () => {
-            setBox(menuItemButtonState.radioButtonChecked, definitionSet.check.checkedRadioButton);
+            setBox(menuItemButtonState.checkedRadioButton);
         }; //setCheckedRadioButton
         this.clearBoxesButtons = () => {
             setBox(menuItemButtonState.none);
@@ -131,6 +126,20 @@ function menuGenerator (container, options) {
         },
     } //const definitionSet
     Object.freeze(definitionSet);
+    const menuItemButtonState = {
+        none: 0,
+        checkBox: 1,
+        checkedCheckbox: 2,
+        radioButton: 3,
+        checkedRadioButton: 4,
+    }; //menuItemButtonState
+    Object.freeze(menuItemButtonState);
+    const boxMap = new Map();
+    boxMap.set(menuItemButtonState.none, null);
+    boxMap.set(menuItemButtonState.checkBox, definitionSet.check.checkbox);
+    boxMap.set(menuItemButtonState.checkedCheckbox, definitionSet.check.checkedCheckbox);
+    boxMap.set(menuItemButtonState.radioButton, definitionSet.check.radioButton);
+    boxMap.set(menuItemButtonState.checkedRadioButton, definitionSet.check.checkedRadioButton);
 
     const reset = () => {
         if (!resetAfterAction) return;
