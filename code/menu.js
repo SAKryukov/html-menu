@@ -208,6 +208,7 @@ function menuGenerator (container, options) {
         eventData.select.style.display = doSelect
             ? definitionSet.states.show : definitionSet.states.hide;
         if (!doSelect) return;
+        if (eventData.optionSize < 2) ++eventData.optionSize; // SA??? weird bug workaround
         eventData.select.size = eventData.optionSize;
         if (doSelect)
             current = element;
