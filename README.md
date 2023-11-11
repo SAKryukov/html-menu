@@ -4,7 +4,7 @@
 
 Features:
 
-- Compact solution in just [one JavaScript file](https://www.github.com/SAKryukov/html-menu/code/menu.js)
+- Compact solution in just [one JavaScript file](https://github.com/SAKryukov/html-menu/blob/main/code/menu.js)
 - Simple binding of the menu items with the script functions via subscription
 - Both horizontal two-level menu and context menu in one constructor
 - Loose binding between menus and command sets: different menus can handle the same command set object, and several command set objects per menu can subscribe
