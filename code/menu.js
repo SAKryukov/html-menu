@@ -203,7 +203,12 @@ function menuGenerator (container, isContextMenu) {
                     } //loop
                     return newValue;
                 } //specialize
+                const toRemapKeyboardShortcuts =
+                    menuOptions.keyboardShortcuts.excludes !=
+                    customOptions.keyboardShortcuts.excludes
                 menuOptions = specialize(menuOptions, customOptions);
+                if (toRemapKeyboardShortcuts)
+                    remapKeyboardShortcuts();
             }, //set
             enumerable: true,
             configurable: true,
