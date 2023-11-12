@@ -36,7 +36,7 @@ option, optgroup { padding: var(--padding-option); font-weight: normal; }
 optgroup { margin-left: 1em; }
 optgroup option { padding-left: 2em; }
 option:disabled { color: black; opacity: 0.3; }
-option.separator { border-bottom: solid 1px black; }
+option.separator { padding: 0; opacity: 1; }
 main { padding-left: 20em; }
 button { padding: var(--padding); background-color: beige; border: none; border-radius: 4em;
     outline: solid 0.4px; }
