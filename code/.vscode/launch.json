@@ -5,7 +5,7 @@
             "name": "File",
             "request": "launch",
             "type": "chrome",
-            "file": "${workspaceFolder}/demo/index.html"
+            "file": "${workspaceFolder}/demo/buttons.html"
         }
     ]
 }

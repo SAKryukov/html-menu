@@ -57,10 +57,15 @@ window.onload = () => {
                 elements.notePanel.style.borderColor = "gray";
                 elements.footer.style.color = "white";
                 elements.footer.style.backgroundColor = "darkGreen";
-            } else {
+            } else if (menuItemHandle == menuItemThemeLight) {
                 elements.main.style = mainDefault;
                 elements.notePanel.style = notePanelDefault;
                 elements.footer.style = footerDefault;
+            } else {
+                elements.main.style.backgroundColor = "white";
+                elements.main.style.color = "black";
+                elements.footer.style.backgroundColor = "white";
+                elements.footer.style.color = "black";
             } //if
         } //setTheme
         const menuItemThemeLight = menu.subscribe("Light", (actionRequest, action) => {
@@ -78,9 +83,9 @@ window.onload = () => {
             log(action);
             setTheme(menuItemThemeSystemDefault);
         });
-        menuItemThemeLight.setRadioButton();
+        menuItemThemeLight.setCheckedRadioButton();
         menuItemThemeDark.setRadioButton();
-        menuItemThemeSystemDefault.setCheckedRadioButton();
+        menuItemThemeSystemDefault.setRadioButton();
     })(); //themes
 
     (() => { //view:
