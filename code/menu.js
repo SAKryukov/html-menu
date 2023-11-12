@@ -280,6 +280,8 @@ function menuGenerator (container, isContextMenu) {
             menuItems = elementValue.menuItems;
         } else
             menuItems = element.options;
+        if (menuItems.length < 1) return;
+        const verticalMenu = menuItems[0].parentElement;
         for (const menuItem of menuItems) {
             const menuItemData = elementMap.get(menuItem);
             const value = menuItemData.shadowValue;
@@ -291,10 +293,10 @@ function menuGenerator (container, isContextMenu) {
             hasDisabled ||= menuItem.disabled;
         } //loop
         if (!hasDisabled) return;
+        if (!verticalMenu.options[verticalMenu.selectedIndex].disabled) return;
         // more complicated: removing selection from the disabled menu item:
         for (const menuItem of menuItems) {
             if (!menuItem.disabled) {
-                const verticalMenu = menuItem.parentElement;
                 for (const optionIndex in verticalMenu.options) {
                     if (verticalMenu.options[optionIndex] == menuItem) {
                         verticalMenu.selectedIndex = optionIndex;
