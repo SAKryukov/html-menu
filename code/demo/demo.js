@@ -28,7 +28,7 @@ window.onload = () => {
         elements.main.appendChild(item);
     }; //log
 
-    const menu = new menuGenerator(elements.menu, { hide: false, reset: false }, false, ["Alt"]);
+    const menu = new menuGenerator(elements.menu);
 
     // if (!actionRequest) the added handler should return true (enable), false (disable) or nothing (undefined)
     // if undefined, menu state is not changed;
@@ -84,7 +84,7 @@ window.onload = () => {
     })(); //commandSet
 
     (() => { //contextMenu:
-        const contextMenu = new menuGenerator(elements.contextMenu, { hide: false, reset: false }, true);
+        const contextMenu = new menuGenerator(elements.contextMenu, true);
         contextMenu.subscribeCommandSet(commandSet);
         let lastPointerX = 0;
         let lastPointerY = 0;
@@ -101,14 +101,5 @@ window.onload = () => {
             event.preventDefault();
         }; //this.#table.oncontextmenu
     })(); //contextMenu
-
-    /*
-    window.onkeyup = event => {
-        if (event.key == "Alt") {
-            menu.activate();
-            event.preventDefault();
-        } //if
-    } //window.onkeydown
-    */
 
 };

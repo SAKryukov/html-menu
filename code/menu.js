@@ -8,27 +8,95 @@ http://www.codeproject.com/Members/SAKryukov
 
 "use strict";
 
-function menuGenerator (container, options, isContextMenu, activationKeyPrefix) {
+function menuGenerator (container, isContextMenu) {
 
     if (!container) return;
     if ((!isContextMenu) && container.constructor != HTMLMenuElement) return;
+
+    const definitionSet = {
+        selectionIndicator: "selected",
+        events: { optionClick: "optionClick", keyUp: "keyup", keyDown: "keydown" },
+        keyboard: {
+            left: "ArrowLeft",
+            right: "ArrowRight",
+            up: "ArrowUp",
+            down: "ArrowDown",
+            home: "Home",
+            end: "End",
+            escape: "Escape",
+            enter: "Enter",
+            edit: "F2",
+            findNext: "F3",
+            underline: text => `<u>${text}</u>`,
+        },
+        elements: {
+            header: "header",
+            select: "select",
+            span: "span",
+        },
+        css: {
+            show: "inline",
+            hide: "none",
+            positionAbsolute: "absolute",
+            pixels: value => `${value}px`,
+            noPointerEvents: "none",
+            underline: "underline",
+        },
+        check: {
+            checkbox: String.fromCodePoint(0x2610, 0x2009), //Ballot Box
+            checkedCheckbox: String.fromCodePoint(0x2611, 0x2009), //Ballot Box with Check
+            radioButton: String.fromCodePoint(0x2B58, 0x2009), //Heavy Circle
+            checkedRadioButton: String.fromCodePoint(0x2B57, 0x2009), //Heavy Circle with Circle Inside
+            menuItemProxyHint: hint => `Use: ${hint.join(", ")}`,
+            menuItemProxyBrackets: "()",
+        },
+        apiHint: {
+            stringify: hint => `Use: ${hint.join(", ")}`,
+            brackets: "()",
+            assignment: " = ",
+            exclude: "toString",
+        },
+        exceptions: {
+            menuItemSubscriptionFailure: value => `
+                Menu item "${value}" subscription failed:
+                menu item (HTML option) with this value does not exist`, //sic!
+        },
+        toString: text => `${text == null ? "" : text}`,
+    } //const definitionSet
+    Object.freeze(definitionSet);
+    const menuItemButtonState = {
+        none: 0,
+        checkBox: 1,
+        checkedCheckbox: 2,
+        radioButton: 3,
+        checkedRadioButton: 4,
+    }; //menuItemButtonState
+    Object.freeze(menuItemButtonState);
+    let menuOptions = {
+        activationKeyPrefix: ["Alt"],
+        afterActionBehavior: {
+            hide: false,
+            reset: false,
+        },
+    }; //menuOptions
+    const boxMap = new Map();
+    boxMap.set(menuItemButtonState.none, null);
+    boxMap.set(menuItemButtonState.checkBox, definitionSet.check.checkbox);
+    boxMap.set(menuItemButtonState.checkedCheckbox, definitionSet.check.checkedCheckbox);
+    boxMap.set(menuItemButtonState.radioButton, definitionSet.check.radioButton);
+    boxMap.set(menuItemButtonState.checkedRadioButton, definitionSet.check.checkedRadioButton);
 
     class MenuSubscriptionFailure extends Error {
         constructor(message) { super(message); }
     } //class MenuSubscriptionFailure
 
     const row = [];
-    let isCurrentVisible = false, hideAfterAction = false, resetAfterAction = false, current;
+    let isCurrentVisible = false, current = null;
     const actionMap = new Map();
     const elementMap = new Map();
     const keyboardMap = new Map();
 
-    if (options && options.constructor == Object) {
-        hideAfterAction = options.hide;
-        resetAfterAction = options.reset;
-    } //if
-
-    function menuItemProxy(menuItem) {
+    function menuItemProxyApi(menuItem) {
         const setBox = newButton => {
             const menuItemData = elementMap.get(menuItem);
             menuItemData.button = newButton;
@@ -66,122 +134,97 @@ function menuGenerator (container, options, isContextMenu, activationKeyPrefix) 
             return createSelfDocumentedList(this);
         }; //this.toString
         Object.freeze(this);
-    }; // menuItemProxy
+    }; // menuItemProxyApi
     
-    this.subscribeCommandSet = function(commandSet) {
-        for (const [key, command] of commandSet)
-            command.menuItemHandle = this.subscribe(key, command);
-    }; //subscribeCommandSet
-    this.subscribe = (value, action) => {
-        const actionMapData = actionMap.get(value);
-        if (!actionMapData)
-            throw new MenuSubscriptionFailure(
-                definitionSet.exceptions.menuItemSubscriptionFailure(value));
-        actionMapData.action = action;
-        return new menuItemProxy(actionMapData.menuItem);
-    } //this.subscribe
-    this.activate = (pointerX, pointerY) => {
-        if (isContextMenu) {
-            container.style.zIndex = Number.MAX_SAFE_INTEGER;
-            updateStates(container);
-            container.style.position = definitionSet.css.positionAbsolute;
-            container.style.display = definitionSet.css.show;
-            const rectangle = container.getBoundingClientRect();
-            if (pointerX != null && pointerY != null) {
-                container.style.left = pointerX + rectangle.width < window.innerWidth
-                    ? definitionSet.css.pixels(pointerX)
-                    : definitionSet.css.pixels(pointerX - rectangle.width);
-                    container.style.top = pointerY + rectangle.height < window.innerHeight
-                    ? definitionSet.css.pixels(pointerY)
-                    : definitionSet.css.pixels(pointerY - rectangle.height);
-            } else {
-                container.style.left = css.pixels.coordinate(window.innerWidth / 2);
-                container.style.top = css.pixels.coordinate(window.innerHeight / 2);
+    (() => { //this.API:
+        this.subscribeCommandSet = function(commandSet) {
+            for (const [key, command] of commandSet)
+                command.menuItemHandle = this.subscribe(key, command);
+        }; //subscribeCommandSet
+        this.subscribe = (value, action) => {
+            const actionMapData = actionMap.get(value);
+            if (!actionMapData)
+                throw new MenuSubscriptionFailure(
+                    definitionSet.exceptions.menuItemSubscriptionFailure(value));
+            actionMapData.action = action;
+            return new menuItemProxyApi(actionMapData.menuItem);
+        }; //this.subscribe
+        this.activate = (pointerX, pointerY) => {
+            if (isContextMenu) {
+                container.style.zIndex = Number.MAX_SAFE_INTEGER;
+                updateStates(container);
+                container.style.position = definitionSet.css.positionAbsolute;
+                container.style.display = definitionSet.css.show;
+                const rectangle = container.getBoundingClientRect();
+                if (pointerX != null && pointerY != null) {
+                    container.style.left = pointerX + rectangle.width < window.innerWidth
+                        ? definitionSet.css.pixels(pointerX)
+                        : definitionSet.css.pixels(pointerX - rectangle.width);
+                        container.style.top = pointerY + rectangle.height < window.innerHeight
+                        ? definitionSet.css.pixels(pointerY)
+                        : definitionSet.css.pixels(pointerY - rectangle.height);
+                } else {
+                    container.style.left = css.pixels.coordinate(window.innerWidth / 2);
+                    container.style.top = css.pixels.coordinate(window.innerHeight / 2);
+                } //if
+                if (menuOptions.afterActionBehavior.reset)
+                    container.selectedIndex = 0;
+                setTimeout(() => container.focus());
+                return;
             } //if
-            container.selectedIndex = 0;
-            setTimeout(() => container.focus());
-            return;
-        } //if
-        if (row.left < 1) return;
-        if (current)
-            select(current, true);
-        else
-            select(row[0].element, true);
-    } //this.activate
-    this.toString = () => {
-        return createSelfDocumentedList(this);
-    }; //this.toString
- 
-    const definitionSet = {
-        selectionIndicator: "selected",
-        events: { optionClick: "optionClick", keyUp: "keyup", keyDown: "keydown" },
-        keyboard: {
-            left: "ArrowLeft",
-            right: "ArrowRight",
-            up: "ArrowUp",
-            down: "ArrowDown",
-            home: "Home",
-            end: "End",
-            escape: "Escape",
-            enter: "Enter",
-            edit: "F2",
-            findNext: "F3",
-            underline: text => `<u>${text}</u>`,
-        },
-        elements: {
-            header: "header",
-            select: "select",
-            span: "span",
-        },
-        css: {
-            show: "inline",
-            hide: "none",
-            positionAbsolute: "absolute",
-            pixels: value => `${value}px`,
-            noPointerEvents: "none",
-            underline: "underline",
-        },
-        check: {
-            checkbox: String.fromCodePoint(0x2610, 0x2009), //Ballot Box
-            checkedCheckbox: String.fromCodePoint(0x2611, 0x2009), //Ballot Box with Check
-            radioButton: String.fromCodePoint(0x2B58, 0x2009), //Heavy Circle
-            checkedRadioButton: String.fromCodePoint(0x2B57, 0x2009), //Heavy Circle with Circle Inside
-            menuItemProxyHint: hint => `Use: ${hint.join(", ")},`,
-            menuItemProxyBrackets: "()",
-        },
-        exceptions: {
-            menuItemSubscriptionFailure: value => `
-                Menu item "${value}" subscription failed:
-                menu item (HTML option) with this value does not exist`, //sic!
-        },
-        toString: text => `${text == null ? "" : text}`,
-    } //const definitionSet
-    Object.freeze(definitionSet);
-    const menuItemButtonState = {
-        none: 0,
-        checkBox: 1,
-        checkedCheckbox: 2,
-        radioButton: 3,
-        checkedRadioButton: 4,
-    }; //menuItemButtonState
-    Object.freeze(menuItemButtonState);
-    const boxMap = new Map();
-    boxMap.set(menuItemButtonState.none, null);
-    boxMap.set(menuItemButtonState.checkBox, definitionSet.check.checkbox);
-    boxMap.set(menuItemButtonState.checkedCheckbox, definitionSet.check.checkedCheckbox);
-    boxMap.set(menuItemButtonState.radioButton, definitionSet.check.radioButton);
-    boxMap.set(menuItemButtonState.checkedRadioButton, definitionSet.check.checkedRadioButton);
+            if (row.left < 1) return;
+            if (current)
+                select(current, true);
+            else
+                select(row[0].element, true);
+        }; //this.activate
+        Object.defineProperty(this, "options", {
+            set(customOptions) {
+                const specialize = (defaultValue, value) => {
+                    if (value == null) return defaultValue;
+                    const newValue = {};
+                    for (let index in defaultValue) {
+                        if (value[index] !== undefined) {
+                            if (value[index] != null &&
+                                defaultValue[index] != null &&
+                                value[index].constructor == Object &&
+                                defaultValue[index].constructor == Object)
+                                newValue[index] = specialize(defaultValue[index], value[index]);
+                            else
+                                newValue[index] = value[index];
+                        } else
+                            newValue[index] = defaultValue[index];
+                    } //loop
+                    return newValue;
+                } //specialize
+                menuOptions = specialize(menuOptions, customOptions);
+            }, //set
+            enumerable: true,
+            configurable: true,
+          });
+        this.toString = () => {
+            return createSelfDocumentedList(this);
+        }; //this.toString
+    })(); //this.API 
     
     const createSelfDocumentedList = self => {
-        const methodNames = [];
-        for (const index in self)
-            if (self[index].constructor == Function)
-                methodNames.push(index + definitionSet.check.menuItemProxyBrackets);
-        return definitionSet.check.menuItemProxyHint(methodNames);
+        const propertyNames = [];
+        for (const index in self) {
+            if (index == definitionSet.apiHint.exclude)
+                continue;
+            if (self[index] && self[index].constructor == Function)
+                propertyNames.push(index + definitionSet.apiHint.brackets);
+            else {
+                const descriptor = Object.getOwnPropertyDescriptor(self, index);
+                if (descriptor || descriptor.set != null)
+                    propertyNames.push(index + definitionSet.apiHint.assignment);
+            } //if
+        } //loop
+        return definitionSet.apiHint.stringify(propertyNames);
     }; //createSelfDocumentedList
 
     const reset = () => {
-        if (!resetAfterAction) return;
+        if (!menuOptions.afterActionBehavior.reset) return;
         if (row.length < 1) return;
         for (const element of row) {
             if (element.select)
@@ -202,7 +245,7 @@ function menuGenerator (container, options, isContextMenu, activationKeyPrefix) 
             } else
                 updateStates(row[menuItemData.xPosition].element);
         } //if
-        if (hideAfterAction && current) 
+        if (menuOptions.afterActionBehavior.hide && current) 
             select(current, false);
         reset();
     }); //container.optionClick
@@ -286,9 +329,9 @@ function menuGenerator (container, options, isContextMenu, activationKeyPrefix) 
     
     const goodForKeyboardHandling = () => {
         if (isContextMenu) return;
-        if (activationKeyPrefix == null) return;
-        if (activationKeyPrefix.constructor != Array) return;
-        if (activationKeyPrefix.length < 1) return;
+        if (menuOptions.activationKeyPrefix == null) return;
+        if (menuOptions.activationKeyPrefix.constructor != Array) return;
+        if (menuOptions.activationKeyPrefix.length < 1) return;
         return true;
     }; //goodForKeyboardHandling
 
@@ -451,14 +494,14 @@ function menuGenerator (container, options, isContextMenu, activationKeyPrefix) 
         }; //container.onfocus    
     }; //if
 
-    const startKeyboardHandling = (pressed, handler) => {
+    const startKeyboardHandling = handler => {
         if (!goodForKeyboardHandling()) return;
-        const downKeys =    new Set();
+        const downKeys = new Set();
         window.addEventListener(definitionSet.events.keyDown, event => {
             downKeys.add(event.key);
-            if (downKeys.size <= pressed.length) return;
+            if (downKeys.size <= menuOptions.activationKeyPrefix.length) return;
             if (!downKeys.has(event.key)) return;
-            for (const pressedOne of pressed)
+            for (const pressedOne of menuOptions.activationKeyPrefix)
                 if (!downKeys.has(pressedOne)) return;
             handler(event);
         });
@@ -467,7 +510,7 @@ function menuGenerator (container, options, isContextMenu, activationKeyPrefix) 
         });
     }; //startKeyboardHandling
 
-    startKeyboardHandling(activationKeyPrefix, event => {
+    startKeyboardHandling(event => {
         const length = row.length;  
         if (keyboardMap.size < 1) return;
         if (length < 1) return;

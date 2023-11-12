@@ -28,7 +28,7 @@ window.onload = () => {
         elements.console.appendChild(item);
     }; //log
 
-    const menu = new menuGenerator(elements.menu, { hide: false, reset: false });
+    const menu = new menuGenerator(elements.menu);
 
     (() => { //clear:
         // commandSet and menu.subscribeCommandSet is an alternative way of subscribing
