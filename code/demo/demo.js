@@ -84,7 +84,7 @@ window.onload = () => {
     })(); //commandSet
 
     (() => { //contextMenu:
-        const contextMenu = new menuGenerator(elements.contextMenu, true);
+        const contextMenu = new menuGenerator(elements.contextMenu);
         contextMenu.subscribeCommandSet(commandSet);
         let lastPointerX = 0;
         let lastPointerY = 0;

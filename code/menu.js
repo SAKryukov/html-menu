@@ -8,11 +8,18 @@ http://www.codeproject.com/Members/SAKryukov
 
 "use strict";
 
-function menuGenerator (container, isContextMenu) {
+function menuGenerator (container) {
 
     if (!container) return;
-    if ((!isContextMenu) && container.constructor != HTMLMenuElement) return;
-
+    const isContextMenu = container instanceof HTMLSelectElement;
+    if (!isContextMenu && !(container instanceof HTMLElement)) {
+        class MenuFailure extends Error {
+            constructor(message) { super(message); }
+        } //class MenuFailure
+            throw new MenuFailure(`
+                Menu container should be an ${HTMLElement.name} (${HTMLSelectElement.name} for context menu)`);
+    } //if
+    
     const definitionSet = {
         selectionIndicator: "selected",
         events: { optionClick: "optionClick", keyUp: "keyup", keyDown: "keydown" },
@@ -75,7 +82,7 @@ function menuGenerator (container, isContextMenu) {
     let menuOptions = {
         keyboardShortcuts: {
             activationPrefix: ["Alt"],
-            excludes: "|/\\`~;:,.ljgqp !@#$%^&*()_-+",
+            excludes: "|/\\`~;:,." + "q-lip"+ "jpg" + "!@#$%^&*()_+",
         },
         afterActionBehavior: {
             hide: false,
