@@ -75,7 +75,7 @@ function menuGenerator (container, isContextMenu) {
     let menuOptions = {
         keyboardShortcuts: {
             activationPrefix: ["Alt"],
-            excludes: "|/\\`~;:,.jgqp !@#$%^&*()_-+",
+            excludes: "|/\\`~;:,.ljgqp !@#$%^&*()_-+",
         },
         afterActionBehavior: {
             hide: false,
@@ -227,7 +227,9 @@ function menuGenerator (container, isContextMenu) {
                 return;
             let index = 0;
             let found = false;
-            for (const character of header.textContent) {
+            const textContent = header.textContent;
+            header.innerHTML = textContent; // remove markup
+            for (const character of textContent) {
                 const characterKey = character.toLowerCase(character);
                 if (!keyboardMap.has(characterKey) && !(keyboardMap.has(character))) {
                     keyboardMap.has(characterKey);
@@ -237,7 +239,7 @@ function menuGenerator (container, isContextMenu) {
                 } //if
                 ++index;
             } //loop
-            if (!found) return;
+            if (!found) { header.textContent = textContent; return; }
             (header => { //underline keyboard shortcut:
                 const shortcut = header.textContent[index];
                 const split = header.textContent.split(shortcut);
@@ -256,6 +258,8 @@ function menuGenerator (container, isContextMenu) {
         let xPosition = 0;
         for (const element of row)
             remapKeyboardShortcut(element.header, xPosition++);
+        for (const character of menuOptions.keyboardShortcuts.excludes)
+            keyboardMap.delete(character);
     }; //remapKeyboardShortcuts
     
     const createSelfDocumentedList = self => {
