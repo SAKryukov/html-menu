@@ -73,18 +73,24 @@ function menuGenerator (container, isContextMenu) {
     }; //menuItemButtonState
     Object.freeze(menuItemButtonState);
     let menuOptions = {
-        activationKeyPrefix: ["Alt"],
+        keyboardShortcuts: {
+            activationPrefix: ["Alt"],
+            excludes: "|/\\`~;:,.jgqp !@#$%^&*()_-+",
+        },
         afterActionBehavior: {
             hide: false,
             reset: false,
         },
     }; //menuOptions
     const boxMap = new Map();
-    boxMap.set(menuItemButtonState.none, null);
-    boxMap.set(menuItemButtonState.checkBox, definitionSet.check.checkbox);
-    boxMap.set(menuItemButtonState.checkedCheckbox, definitionSet.check.checkedCheckbox);
-    boxMap.set(menuItemButtonState.radioButton, definitionSet.check.radioButton);
-    boxMap.set(menuItemButtonState.checkedRadioButton, definitionSet.check.checkedRadioButton);
+    boxMap.setup = function(state, texts) {
+        this.set(state.none, null);
+        this.set(state.checkBox, texts.checkbox);
+        this.set(state.checkedCheckbox, texts.checkedCheckbox);
+        this.set(state.radioButton, texts.radioButton);
+        this.set(state.checkedRadioButton, texts.checkedRadioButton);    
+    };
+    boxMap.setup(menuItemButtonState, definitionSet.check);
 
     class MenuSubscriptionFailure extends Error {
         constructor(message) { super(message); }
@@ -206,6 +212,46 @@ function menuGenerator (container, isContextMenu) {
             return createSelfDocumentedList(this);
         }; //this.toString
     })(); //this.API 
+
+    const remapKeyboardShortcuts = () => {
+        keyboardMap.clear();
+        for (const character of menuOptions.keyboardShortcuts.excludes)
+            keyboardMap.set(character, null);
+        const remapKeyboardShortcut = (header, xPosition) => { //automatic keyboard shortcuts:
+            if (!goodForKeyboardHandling())
+                return;
+            let index = 0;
+            let found = false;
+            for (const character of header.textContent) {
+                const characterKey = character.toLowerCase(character);
+                if (!keyboardMap.has(characterKey) && !(keyboardMap.has(character))) {
+                    keyboardMap.has(characterKey);
+                    keyboardMap.set(characterKey, xPosition);
+                    found = true;
+                    break;
+                } //if
+                ++index;
+            } //loop
+            if (!found) return;
+            (header => { //underline keyboard shortcut:
+                const shortcut = header.textContent[index];
+                const split = header.textContent.split(shortcut);
+                const before = document.createTextNode(split[0]);
+                const shortcutHtml = document.createElement(definitionSet.elements.span);
+                const after = document.createTextNode(split[1]);
+                shortcutHtml.textContent = shortcut;
+                shortcutHtml.style.pointerEvents = definitionSet.css.noPointerEvents;
+                shortcutHtml.style.textDecoration = definitionSet.css.underline;
+                header.textContent = null;
+                header.appendChild(before);
+                header.appendChild(shortcutHtml);
+                header.appendChild(after);    
+            })(header); //underline keyboard shortcut
+        } //remapKeyboardShortcut
+        let xPosition = 0;
+        for (const element of row)
+            remapKeyboardShortcut(element.header, xPosition++);
+    }; //remapKeyboardShortcuts
     
     const createSelfDocumentedList = self => {
         const propertyNames = [];
@@ -331,9 +377,9 @@ function menuGenerator (container, isContextMenu) {
     
     const goodForKeyboardHandling = () => {
         if (isContextMenu) return;
-        if (menuOptions.activationKeyPrefix == null) return;
-        if (menuOptions.activationKeyPrefix.constructor != Array) return;
-        if (menuOptions.activationKeyPrefix.length < 1) return;
+        if (menuOptions.keyboardShortcuts.activationPrefix == null) return;
+        if (menuOptions.keyboardShortcuts.activationPrefix.constructor != Array) return;
+        if (menuOptions.keyboardShortcuts.activationPrefix.length < 1) return;
         return true;
     }; //goodForKeyboardHandling
 
@@ -358,37 +404,6 @@ function menuGenerator (container, isContextMenu) {
             elementMap.set(rowCell.element, data);
             elementMap.set(rowCell.header, data);
             elementMap.set(rowCell.select, data);
-            (header => { //automatic keyboard shortcuts:
-                if (!goodForKeyboardHandling())
-                    return;
-                let index = 0;
-                let found = false;
-                for (const character of header.textContent) {
-                    const characterKey = character.toLowerCase(character);
-                    if (!keyboardMap.has(characterKey)) {
-                        keyboardMap.has(characterKey);
-                        keyboardMap.set(characterKey, data.xPosition);
-                        found = true;
-                        break;
-                    } //if
-                    ++index;
-                } //loop
-                if (!found) return;
-                (header => { //underline keyboard shortcut:
-                    const shortcut = header.textContent[index];
-                    const split = header.textContent.split(shortcut);
-                    const before = document.createTextNode(split[0]);
-                    const shortcutHtml = document.createElement(definitionSet.elements.span);
-                    const after = document.createTextNode(split[1]);
-                    shortcutHtml.textContent = shortcut;
-                    shortcutHtml.style.pointerEvents = definitionSet.css.noPointerEvents;
-                    shortcutHtml.style.textDecoration = definitionSet.css.underline;
-                    header.textContent = null;
-                    header.appendChild(before);
-                    header.appendChild(shortcutHtml);
-                    header.appendChild(after);    
-                })(header); //underline keyboard shortcut
-            })(rowCell.header); //automatic keyboard shortcuts
             data.optionSize = contextMenuPopulate(rowCell.select, data);
             rowCell.header.onpointerdown = event => {
                 const element = elementMap.get(event.target).element;
@@ -397,6 +412,7 @@ function menuGenerator (container, isContextMenu) {
                 select(element, true);
             } //rowCell.header.onpointerdown
         } //loop
+        remapKeyboardShortcuts();
     }; //twoLevelMenuPopulate
 
     const contextMenuPopulate = (selectElement, data) => {
@@ -501,9 +517,9 @@ function menuGenerator (container, isContextMenu) {
         const downKeys = new Set();
         window.addEventListener(definitionSet.events.keyDown, event => {
             downKeys.add(event.key);
-            if (downKeys.size <= menuOptions.activationKeyPrefix.length) return;
+            if (downKeys.size <= menuOptions.keyboardShortcuts.activationPrefix.length) return;
             if (!downKeys.has(event.key)) return;
-            for (const pressedOne of menuOptions.activationKeyPrefix)
+            for (const pressedOne of menuOptions.keyboardShortcuts.activationPrefix)
                 if (!downKeys.has(pressedOne)) return;
             handler(event);
         });
