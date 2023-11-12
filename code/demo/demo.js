@@ -9,6 +9,15 @@ http://www.codeproject.com/Members/SAKryukov
 "use strict";
 
 window.onload = () => {
+
+    if (window.location.search && window.location.search.length > 0) {
+        document.title = "Flex Menu Styling";
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.type = "text/css";
+        link.href = "flex.css";
+        document.head.appendChild(link);
+    } //if
     
     const elements = {
         menu: document.querySelector("header menu"),
@@ -71,7 +80,7 @@ window.onload = () => {
             if (!actionRequest) return;
             window.open(action, "_blank");
         });
-        commandSet.set("flex.html", (actionRequest, action) => {
+        commandSet.set("index.html?flex", (actionRequest, action) => {
             if (!actionRequest) return;
             window.open(action, "_blank");
         });
