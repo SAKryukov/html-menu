@@ -28,7 +28,7 @@ window.onload = () => {
         elements.main.appendChild(item);
     }; //log
 
-    const menu = new menuGenerator(elements.menu, { hide: false, reset: false });
+    const menu = new menuGenerator(elements.menu, { hide: false, reset: false }, false, ["Alt"]);
 
     // if (!actionRequest) the added handler should return true (enable), false (disable) or nothing (undefined)
     // if undefined, menu state is not changed;
@@ -102,11 +102,13 @@ window.onload = () => {
         }; //this.#table.oncontextmenu
     })(); //contextMenu
 
+    /*
     window.onkeyup = event => {
         if (event.key == "Alt") {
             menu.activate();
             event.preventDefault();
         } //if
     } //window.onkeydown
+    */
 
 };

@@ -8,7 +8,7 @@ http://www.codeproject.com/Members/SAKryukov
 
 "use strict";
 
-function menuGenerator (container, options, isContextMenu) {
+function menuGenerator (container, options, isContextMenu, activationKeyPrefix) {
 
     if (!container) return;
     if ((!isContextMenu) && container.constructor != HTMLMenuElement) return;
@@ -19,14 +19,14 @@ function menuGenerator (container, options, isContextMenu) {
 
     const row = [];
     let isCurrentVisible = false, hideAfterAction = false, resetAfterAction = false, current;
+    const actionMap = new Map();
+    const elementMap = new Map();
+    const keyboardMap = new Map();
 
     if (options && options.constructor == Object) {
         hideAfterAction = options.hide;
         resetAfterAction = options.reset;
     } //if
-
-    const actionMap = new Map();
-    const elementMap = new Map();
 
     function menuItemProxy(menuItem) {
         const setBox = newButton => {
@@ -114,7 +114,7 @@ function menuGenerator (container, options, isContextMenu) {
  
     const definitionSet = {
         selectionIndicator: "selected",
-        events: { optionClick: "optionClick" },
+        events: { optionClick: "optionClick", keyUp: "keyup", keyDown: "keydown" },
         keyboard: {
             left: "ArrowLeft",
             right: "ArrowRight",
@@ -125,17 +125,21 @@ function menuGenerator (container, options, isContextMenu) {
             escape: "Escape",
             enter: "Enter",
             edit: "F2",
-            findNext: "F3",    
+            findNext: "F3",
+            underline: text => `<u>${text}</u>`,
         },
         elements: {
             header: "header",
             select: "select",
+            span: "span",
         },
         css: {
             show: "inline",
             hide: "none",
             positionAbsolute: "absolute",
             pixels: value => `${value}px`,
+            noPointerEvents: "none",
+            underline: "underline",
         },
         check: {
             checkbox: String.fromCodePoint(0x2610, 0x2009), //Ballot Box
@@ -280,6 +284,14 @@ function menuGenerator (container, options, isContextMenu) {
         isCurrentVisible = doSelect;
     }; //select
     
+    const goodForKeyboardHandling = () => {
+        if (isContextMenu) return;
+        if (activationKeyPrefix == null) return;
+        if (activationKeyPrefix.constructor != Array) return;
+        if (activationKeyPrefix.length < 1) return;
+        return true;
+    }; //goodForKeyboardHandling
+
     const twoLevelMenuPopulate = () => {
         for (const child of container.children) {
             const rowCell = {
@@ -301,6 +313,37 @@ function menuGenerator (container, options, isContextMenu) {
             elementMap.set(rowCell.element, data);
             elementMap.set(rowCell.header, data);
             elementMap.set(rowCell.select, data);
+            (header => { //automatic keyboard shortcuts:
+                if (!goodForKeyboardHandling())
+                    return;
+                let index = 0;
+                let found = false;
+                for (const character of header.textContent) {
+                    const characterKey = character.toLowerCase(character);
+                    if (!keyboardMap.has(characterKey)) {
+                        keyboardMap.has(characterKey);
+                        keyboardMap.set(characterKey, data.xPosition);
+                        found = true;
+                        break;
+                    } //if
+                    ++index;
+                } //loop
+                if (!found) return;
+                (header => { //underline keyboard shortcut:
+                    const shortcut = header.textContent[index];
+                    const split = header.textContent.split(shortcut);
+                    const before = document.createTextNode(split[0]);
+                    const shortcutHtml = document.createElement(definitionSet.elements.span);
+                    const after = document.createTextNode(split[1]);
+                    shortcutHtml.textContent = shortcut;
+                    shortcutHtml.style.pointerEvents = definitionSet.css.noPointerEvents;
+                    shortcutHtml.style.textDecoration = definitionSet.css.underline;
+                    header.textContent = null;
+                    header.appendChild(before);
+                    header.appendChild(shortcutHtml);
+                    header.appendChild(after);    
+                })(header); //underline keyboard shortcut
+            })(rowCell.header); //automatic keyboard shortcuts
             data.optionSize = contextMenuPopulate(rowCell.select, data);
             rowCell.header.onpointerdown = event => {
                 const element = elementMap.get(event.target).element;
@@ -407,6 +450,33 @@ function menuGenerator (container, options, isContextMenu) {
                 select(row[0].element, true)
         }; //container.onfocus    
     }; //if
+
+    const startKeyboardHandling = (pressed, handler) => {
+        if (!goodForKeyboardHandling()) return;
+        const downKeys =    new Set();
+        window.addEventListener(definitionSet.events.keyDown, event => {
+            downKeys.add(event.key);
+            if (downKeys.size <= pressed.length) return;
+            if (!downKeys.has(event.key)) return;
+            for (const pressedOne of pressed)
+                if (!downKeys.has(pressedOne)) return;
+            handler(event);
+        });
+        window.addEventListener(definitionSet.events.keyUp, event => {
+            downKeys.delete(event.key);
+        });
+    }; //startKeyboardHandling
+
+    startKeyboardHandling(activationKeyPrefix, event => {
+        const length = row.length;  
+        if (keyboardMap.size < 1) return;
+        if (length < 1) return;
+        const index = keyboardMap.get(event.key);
+        if (index == null) return;
+        if (index < 0 || index >= length) return;
+        event.preventDefault();
+        select(row[index].element, true);
+    }); //startKeyboardHandling
 
     Object.freeze(this);
 
