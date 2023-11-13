@@ -12,11 +12,10 @@ window.onload = () => {
 
     if (window.location.search && window.location.search.length > 0) {
         document.title = "Flex Menu Styling";
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.type = "text/css";
-        link.href = "flex.css";
-        document.head.appendChild(link);
+        if (document.styleSheets.length > 0)
+            document.styleSheets[0].insertRule(
+                "@import url(flex.css);",
+                document.styleSheets[0].cssRules.length);
     } //if
     
     const elements = {

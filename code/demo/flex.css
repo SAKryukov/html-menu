@@ -1,5 +1,6 @@
 @import url(style.css);
 header menu { display:  flex; flex-direction: row; }
-header menu li:last-of-type { margin-left: auto; }
-header menu li:last-of-type select { right: 2px; border-radius: 9px 0 9px 9px }
+header menu li:last-of-type { margin-left: auto; right: 4px; }
+header menu li:last-of-type select { right: 4px; }
+select, main > select { border-radius: 0; }
 p { margin-top: 1em; }
