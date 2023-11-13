@@ -65,7 +65,7 @@ window.onload = () => {
     });
 
     const commandSet = (() => { //commandSet:
-        // commandSet and menu.subscribeCommandSet is an alternative way of subscribing
+        // menu.subscribe(commandSet) is an alternative way of subscribing
         // it is a convenient way to subscribe to more then one menu, for example,
         // main menu + context menu
         const commandSet = new Map();
@@ -91,7 +91,7 @@ window.onload = () => {
             if (!actionRequest) return;
             window.open("https://www.github.com/SAKryukov/html-menu.git", "_blank");            
         });
-        menu.subscribeCommandSet(commandSet);
+        menu.subscribe(commandSet);
         const menuItemStatusBar = commandSet.get(statusBarName).menuItemHandle;
         const menuItemOptionBar = commandSet.get(toolboxName).menuItemHandle;
         menuItemStatusBar.setCheckBox();
@@ -101,7 +101,7 @@ window.onload = () => {
 
     (() => { //contextMenu:
         const contextMenu = new menuGenerator(elements.contextMenu);
-        contextMenu.subscribeCommandSet(commandSet);
+        contextMenu.subscribe(commandSet);
         let lastPointerX = 0;
         let lastPointerY = 0;
         window.onpointermove = event => {
@@ -115,7 +115,7 @@ window.onload = () => {
             else
                 contextMenu.activate(lastPointerX, lastPointerY);
             event.preventDefault();
-        }; //this.#table.oncontextmenu
+        }; //window.oncontextmenu
     })(); //contextMenu
 
 };

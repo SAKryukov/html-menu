@@ -10,7 +10,7 @@ http://www.codeproject.com/Members/SAKryukov
 
 function menuGenerator (container) {
 
-    const version = "0.2.2";
+    const version = "0.2.3";
     if (!new.target) return version; this.version = version;
 
     if (!container) return;
@@ -169,17 +169,19 @@ function menuGenerator (container) {
     }; // menuItemProxyApi
     
     (() => { //this.API:
-        this.subscribeCommandSet = function(commandSet) {
-            for (const [key, command] of commandSet)
-                command.menuItemHandle = this.subscribe(key, command);
-        }; //subscribeCommandSet
         this.subscribe = (value, action) => {
-            const actionMapData = actionMap.get(value);
-            if (!actionMapData)
-                throw new MenuSubscriptionFailure(
-                    definitionSet.exceptions.menuItemSubscriptionFailure(value));
-            actionMapData.action = action;
-            return new menuItemProxyApi(actionMapData.menuItem);
+            if (!value) return;
+            if (value instanceof Map) {
+                for (const [key, command] of value)
+                    command.menuItemHandle = this.subscribe(key, command);
+            } else {
+                const actionMapData = actionMap.get(value);
+                if (!actionMapData)
+                    throw new MenuSubscriptionFailure(
+                        definitionSet.exceptions.menuItemSubscriptionFailure(value));
+                actionMapData.action = action;
+                return new menuItemProxyApi(actionMapData.menuItem);    
+            } //if
         }; //this.subscribe
         this.activate = (pointerX, pointerY) => {
             if (isContextMenu) {
