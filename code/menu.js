@@ -10,7 +10,7 @@ http://www.codeproject.com/Members/SAKryukov
 
 function menuGenerator (container) {
 
-    const version = "0.2.1"; 
+    const version = "0.2.2";
     if (!new.target) return version; this.version = version;
 
     if (!container) return;
@@ -107,10 +107,26 @@ function menuGenerator (container) {
     } //class MenuSubscriptionFailure
 
     const row = [];
-    let isCurrentVisible = false, current = null;
+    let isCurrentVisible = false, current = null, onShownHandler = null;
     const actionMap = new Map();
     const elementMap = new Map();
     const keyboardMap = new Map();
+
+    const createSelfDocumentedList = self => {
+        const propertyNames = [];
+        for (const index in self) {
+            if (index == definitionSet.apiHint.exclude)
+                continue;
+            if (self[index] && self[index].constructor == Function)
+                propertyNames.push(index + definitionSet.apiHint.brackets);
+            else {
+                const descriptor = Object.getOwnPropertyDescriptor(self, index);
+                if (descriptor || descriptor.set != null)
+                    propertyNames.push(index + definitionSet.apiHint.assignment);
+            } //if
+        } //loop
+        return definitionSet.apiHint.stringify(propertyNames);
+    }; //createSelfDocumentedList
 
     function menuItemProxyApi(menuItem) {
         const setBox = newButton => {
@@ -185,7 +201,10 @@ function menuGenerator (container) {
                 } //if
                 if (menuOptions.afterActionBehavior.reset)
                     container.selectedIndex = 0;
-                setTimeout(() => container.focus());
+                setTimeout(() => {
+                    if (onShownHandler != null) onShownHandler(container);
+                    container.focus();
+                });
                 return;
             } //if
             if (row.left < 1) return;
@@ -223,10 +242,11 @@ function menuGenerator (container) {
             enumerable: true,
             configurable: true,
           });
+        this.onShown = handler => onShownHandler = handler;
         this.toString = () => {
             return createSelfDocumentedList(this);
         }; //this.toString
-    })(); //this.API 
+    })(); //this.API
 
     const remapKeyboardShortcuts = () => {
         keyboardMap.clear();
@@ -272,22 +292,6 @@ function menuGenerator (container) {
             keyboardMap.delete(character);
     }; //remapKeyboardShortcuts
     
-    const createSelfDocumentedList = self => {
-        const propertyNames = [];
-        for (const index in self) {
-            if (index == definitionSet.apiHint.exclude)
-                continue;
-            if (self[index] && self[index].constructor == Function)
-                propertyNames.push(index + definitionSet.apiHint.brackets);
-            else {
-                const descriptor = Object.getOwnPropertyDescriptor(self, index);
-                if (descriptor || descriptor.set != null)
-                    propertyNames.push(index + definitionSet.apiHint.assignment);
-            } //if
-        } //loop
-        return definitionSet.apiHint.stringify(propertyNames);
-    }; //createSelfDocumentedList
-
     const reset = () => {
         if (!menuOptions.afterActionBehavior.reset) return;
         if (row.length < 1) return;
