@@ -40,5 +40,6 @@ option.separator { padding: 0; opacity: 1; }
 main { padding-left: 20em; }
 button { padding: var(--padding); background-color: beige; border: none; border-radius: 4em;
     outline: solid 0.4px; }
+footer { display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
 button { outline-color: saddlebrown; }
 button:focus { outline-color: purple; outline-width: 3px; outline-offset: -1px; }

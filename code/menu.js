@@ -10,6 +10,9 @@ http://www.codeproject.com/Members/SAKryukov
 
 function menuGenerator (container) {
 
+    const version = "0.2.0";    
+    if (!new.target) return version; this.version = version;
+
     if (!container) return;
     const isContextMenu = container instanceof HTMLSelectElement;
     if (!isContextMenu && !(container instanceof HTMLElement)) {

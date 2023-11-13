@@ -24,7 +24,11 @@ window.onload = () => {
         main: document.querySelector("main section"),
         contextMenu: document.querySelector("main > select"),
         clear: document.querySelector("footer button"),
+        version: document.querySelector("footer span"),
     }; //elements
+
+    const version = menuGenerator();
+    elements.version.textContent += version;
 
     elements.clear.onclick = () => {
         while (elements.main.firstChild)
@@ -83,6 +87,10 @@ window.onload = () => {
         commandSet.set("index.html?flex", (actionRequest, action) => {
             if (!actionRequest) return;
             window.open(action, "_blank");
+        });
+        commandSet.set("Source Code", actionRequest => {
+            if (!actionRequest) return;
+            window.open("https://www.github.com/SAKryukov/html-menu.git", "_blank");            
         });
         menu.subscribeCommandSet(commandSet);
         const menuItemStatusBar = commandSet.get(statusBarName).menuItemHandle;
