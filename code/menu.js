@@ -10,7 +10,7 @@ http://www.codeproject.com/Members/SAKryukov
 
 function menuGenerator (container) {
 
-    const version = "0.2.7";
+    const version = "0.2.9";
     if (!new.target) return version; this.version = version;
 
     if (!container) return;
@@ -203,10 +203,7 @@ function menuGenerator (container) {
                 } //if
                 if (menuOptions.afterActionBehavior.reset)
                     container.selectedIndex = 0;
-                setTimeout(() => {
-                    if (onShownHandler != null) onShownHandler(container);
-                    container.focus();
-                });
+                setTimeout(() => container.focus());
                 return;
             } //if
             if (row.left < 1) return;
@@ -215,8 +212,9 @@ function menuGenerator (container) {
             else
                 select(row[0].element, true);
         }; //this.activate
-        Object.defineProperties(this, {
+        Object.defineProperties(this, {            
             options: {
+                get() { return menuOptions },
                 set(customOptions) {
                     const specialize = (defaultValue, value) => {
                         if (value == null) return defaultValue;
@@ -241,8 +239,13 @@ function menuGenerator (container) {
                 enumerable: true,
                 configurable: false,    
             }, //options
+            onShown: {
+                get() { return onShownHandler; },
+                set(handler) { onShownHandler = handler; },                
+                enumerable: true,
+                configurable: false,    
+            }, //onShown
         });
-        this.onShown = handler => onShownHandler = handler;
         this.toString = () => {
             return createSelfDocumentedList(this);
         }; //this.toString
@@ -525,6 +528,7 @@ function menuGenerator (container) {
         const data = { menuItems: [], };
         const size = contextMenuPopulate(selectElement, data);
         selectElement.size = size;
+        container.onfocus = () => { if (onShownHandler != null) onShownHandler(container); }
     } else
         twoLevelMenuPopulate();
 
@@ -535,7 +539,8 @@ function menuGenerator (container) {
                 select(current, true)
             else
                 select(row[0].element, true)
-        }; //container.onfocus    
+            if (onShownHandler != null) onShownHandler(container);
+       }; //container.onfocus    
     }; //if
 
     const startKeyboardHandling = handler => {
