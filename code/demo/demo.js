@@ -49,12 +49,26 @@ window.onload = () => {
     menu.subscribe("Open", (actionRequest, action)  => { 
         if (!actionRequest) return true;
         log(action);
-    });
+    }).changeText(`Open File${String.fromCodePoint(0x2026)}`); // dynamically add ellipsis
 
     menu.subscribe("1", (actionRequest, action)  => { 
         if (!actionRequest) return;
         log(action);
     });
+    menu.subscribe("2", (actionRequest, action)  => { 
+        if (!actionRequest) return;
+        log(action);
+    });
+    menu.subscribe("4", (actionRequest, action)  => { 
+        if (!actionRequest) return;
+        log(action);
+    });
+    menu.subscribe("8", (actionRequest, action)  => { 
+        if (!actionRequest) return;
+        log(action);
+    });
+
+
     menu.subscribe("Save", (actionRequest, action) => { 
         if (!actionRequest) return;
         log(action);

@@ -136,35 +136,32 @@ function menuGenerator (container) {
                 definitionSet.toString(boxMap.get(newButton));
             menuItem.textContent = menuItemData.shadowButtonText + menuItemData.shadowText;
         }; //setBox
-        this.changeText = text => {
-            const menuItemData = elementMap.get(menuItem);
-            menuItemData.shadowText = definitionSet.toString(text);
-            menuItem.textContent = menuItemData.shadowButtonText + menuItemData.shadowText;
-        }; //this.changeText
-        this.setCheckBox = () => {
-            setBox(menuItemButtonState.checkBox);
-        }; //this.setCheckBox
-        this.setCheckedCheckBox = () => {
-            setBox(menuItemButtonState.checkedCheckbox);
-        }; //this.setCheckedCheckBox
-        this.setRadioButton = () => {
-            setBox(menuItemButtonState.radioButton);
-        }; //setRadioButton
-        this.setCheckedRadioButton = () => {
-            setBox(menuItemButtonState.checkedRadioButton);
-        }; //setCheckedRadioButton
-        this.clearBoxesButtons = () => {
-            setBox(menuItemButtonState.none);
-        }; //this.clearBoxesButtons
-        this.enable = () => {
-            menuItem.disabled = false;
-        }; //enable
-        this.disable = () => {
-            menuItem.disabled = true;
-        }; //disable
-        this.toString = () => {
-            return createSelfDocumentedList(this);
-        }; //this.toString
+        Object.defineProperties(this, {
+            changeText: {
+                get() {
+                    return text => {
+                        const menuItemData = elementMap.get(menuItem);
+                        menuItemData.shadowText = definitionSet.toString(text);
+                        menuItem.textContent = menuItemData.shadowButtonText + menuItemData.shadowText;
+                    };
+                }, enumerable: true
+            },
+            setCheckBox: {
+                get() { return () => setBox(menuItemButtonState.checkBox) }, enumerable: true },
+            setCheckedCheckBox: {
+                get() { return () => setBox(menuItemButtonState.checkedCheckbox) }, enumerable: true },
+            setRadioButton: {
+                get() { return () => setBox(menuItemButtonState.radioButton) }, enumerable: true },
+            setCheckedRadioButton: {
+                get() { return () => setBox(menuItemButtonState.checkedRadioButton) }, enumerable: true },
+            clearBoxesButtons: {
+                get() { return () => setBox(menuItemButtonState.none) }, enumerable: true },
+            enable: {
+                get() { return () => menuItem.disabled = false }, enumerable: true },
+            disable: {
+                get() { return () => menuItem.disabled = true }, enumerable: true },
+        }); //Object.defineProperties
+        this.toString = function() { return createSelfDocumentedList(this); };
         Object.freeze(this);
     }; // menuItemProxyApi
     
@@ -240,29 +237,22 @@ function menuGenerator (container) {
                     remapKeyboardShortcuts();
                 }, //set
                 enumerable: true,
-                configurable: false,    
             }, //options
             onShown: {
                 get() { return onShownHandler; },
                 set(handler) { onShownHandler = handler; },                
                 enumerable: true,
-                configurable: false,    
             }, //onShown
             onBlur: {
                 get() { return onBlurHandler; },
                 set(handler) { onBlurHandler = handler; },                
                 enumerable: true,
-                configurable: false,    
             }, //onShown
             version: {
                 get() { return version; },
-                enumerable: false,
-                configurable: false,
             }, //onShown
         });
-        this.toString = () => {
-            return createSelfDocumentedList(this);
-        }; //this.toString
+        this.toString = () => { return createSelfDocumentedList(this); };
     })(); //this.API
 
     const remapKeyboardShortcuts = () => {
@@ -521,7 +511,9 @@ function menuGenerator (container) {
         }; //optionHandler
         const setupOption = (option, xPosition, yPosition, optionValue) => {
             elementMap.set(option, { xPosition: xPosition, yPosition: yPosition,
-                shadowValue: optionValue, shadowText: optionValue, shadowButtonText: null, button: menuItemButtonState.none });
+                shadowValue: optionValue, shadowText: optionValue,
+                shadowButtonText: definitionSet.toString(null),
+                button: menuItemButtonState.none });
             actionMap.set(optionValue, { menuItem: option, xPosition: xPosition, action: null });
             data.menuItems.push(option);
             option.onpointerdown = optionHandler;
