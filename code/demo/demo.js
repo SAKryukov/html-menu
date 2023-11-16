@@ -24,6 +24,7 @@ window.onload = () => {
         contextMenu: document.querySelector("main > select"),
         clear: document.querySelector("footer button"),
         version: document.querySelector("footer span"),
+        menuIndicator: document.querySelector("#menu-indicator"),
     }; //elements
 
     const version = menuGenerator();
@@ -34,13 +35,21 @@ window.onload = () => {
             elements.main.removeChild(elements.main.firstChild);
     }; //elements.clear.onclick
 
-    const log = value => {
+    const log = (value) => {
         const item = document.createElement("span");
         item.innerHTML = `&ldquo;${value}&rdquo; `;
         elements.main.appendChild(item);
     }; //log
 
+    const onShownHandler = container => {
+        const rectangle = container.getBoundingClientRect();
+        elements.menuIndicator.textContent = `Menu: x: [${Math.round(rectangle.left)} .. ${Math.round(rectangle.right)}], y: [${Math.round(rectangle.top)} .. ${Math.round(rectangle.bottom)}]`;
+    } //onShownHandler
+    const onBlurHandler = () => elements.menuIndicator.textContent = null;
+
     const menu = new menuGenerator(elements.menu);
+    menu.onShown = onShownHandler;
+    menu.onBlur = onBlurHandler;
 
     // if (!actionRequest) the added handler should return true (enable), false (disable) or nothing (undefined)
     // if undefined, menu state is not changed;
@@ -67,7 +76,6 @@ window.onload = () => {
         if (!actionRequest) return;
         log(action);
     });
-
 
     menu.subscribe("Save", (actionRequest, action) => { 
         if (!actionRequest) return;
@@ -115,7 +123,9 @@ window.onload = () => {
 
     (() => { //contextMenu:
         const contextMenu = new menuGenerator(elements.contextMenu);
-        contextMenu.subscribe(commandSet);
+        contextMenu.onShown = onShownHandler;
+        contextMenu.onBlur = onBlurHandler;
+            contextMenu.subscribe(commandSet);
         let lastPointerX = 0;
         let lastPointerY = 0;
         window.onpointermove = event => {
